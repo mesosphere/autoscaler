@@ -38,8 +38,8 @@ func customRetryRule(r *request.Request) time.Duration {
 		count = len(retryTimes) - 1
 	}
 
-	minTime := int64(retryTimes[count])
-	return time.Duration(sdkrand.SeededRand.Int63n(minTime) + minTime)
+	minTime := int(retryTimes[count])
+	return time.Duration(sdkrand.SeededRand.Intn(minTime) + minTime)
 }
 
 func setCustomRetryer(c *client.Client) {
