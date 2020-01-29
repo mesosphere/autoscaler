@@ -1,4 +1,4 @@
-#env /usr/bin/bash
+#!/usr/local/bin/bash
 
 set -o errexit
 set -o pipefail
@@ -17,7 +17,7 @@ fi
 
 SCRIPT_NAME=$(basename "$0")
 K8S_FORK="git@github.com:kubernetes/kubernetes.git"
-K8S_REV="master"
+K8S_REV="v1.16.4"
 BATCH_MODE="false"
 TARGET_MODULE=${TARGET_MODULE:-k8s.io/autoscaler/cluster-autoscaler}
 
@@ -108,13 +108,13 @@ set +o errexit
   REQUIRED_GO_VERSION=$(cat go.mod  |grep '^go ' |tr -s ' ' |cut -d ' '  -f 2)
   USED_GO_VERSION=$(go version |sed 's/.*go\([0-9]\+\.[0-9]\+\).*/\1/')
 
-  if [[ "${REQUIRED_GO_VERSION}" != "${USED_GO_VERSION}" ]];then
-    err_rerun "Invalid go version ${USED_GO_VERSION}; required go version is ${REQUIRED_GO_VERSION}."
-  fi
+  #if [[ "${REQUIRED_GO_VERSION}" != "${USED_GO_VERSION}" ]];then
+  #  err_rerun "Invalid go version ${USED_GO_VERSION}; required go version is ${REQUIRED_GO_VERSION}."
+  #fi
 
   # Fix module name and staging modules links
-  sed -i "s#module k8s.io/kubernetes#module ${TARGET_MODULE}#" go.mod
-  sed -i "s#\\./staging#${K8S_REPO}/staging#" go.mod
+  sed -i '' "s#module k8s.io/kubernetes#module ${TARGET_MODULE}#" go.mod
+  sed -i '' "s#\\./staging#${K8S_REPO}/staging#" go.mod
 
   function list_dependencies() {
     local_tmp_dir=$(mktemp -d "${WORK_DIR}/list_dependencies.XXXX")
@@ -150,10 +150,10 @@ set +o errexit
   # Add dependencies from go.mod-extra to go.mod
   # Propagate require entries to both require and replace
   for go_mod_extra in go.mod-extra*; do
-    go mod edit -json ${go_mod_extra} | jq -r '.Require[]? | "-require \(.Path)@\(.Version)"' | xargs -t -r go mod edit >&${BASH_XTRACEFD} 2>&1
-    go mod edit -json ${go_mod_extra} | jq -r '.Require[]? | "-replace \(.Path)=\(.Path)@\(.Version)"' | xargs -t -r go mod edit >&${BASH_XTRACEFD} 2>&1
+    go mod edit -json ${go_mod_extra} | jq -r '.Require[]? | "-require \(.Path)@\(.Version)"' | xargs -t go mod edit >&${BASH_XTRACEFD} 2>&1
+    go mod edit -json ${go_mod_extra} | jq -r '.Require[]? | "-replace \(.Path)=\(.Path)@\(.Version)"' | xargs -t go mod edit >&${BASH_XTRACEFD} 2>&1
     # And add explicit replace entries
-    go mod edit -json ${go_mod_extra} | jq -r '.Replace[]? | "-replace \(.Old.Path)=\(.New.Path)@\(.New.Version)"' | sed "s/@null//g" |xargs -t -r go mod edit >&${BASH_XTRACEFD} 2>&1
+    go mod edit -json ${go_mod_extra} | jq -r '.Replace[]? | "-replace \(.Old.Path)=\(.New.Path)@\(.New.Version)"' | sed "s/@null//g" |xargs -t go mod edit >&${BASH_XTRACEFD} 2>&1
   done
   # Add k8s.io/kubernetes dependency
   go mod edit -require k8s.io/kubernetes@v0.0.0
@@ -185,11 +185,11 @@ set +o errexit
   fi
 
   # Commit go.mod* and vendor
-  git restore --staged . >&${BASH_XTRACEFD} 2>&1
+  git reset . >&${BASH_XTRACEFD} 2>&1
   git add vendor go.mod go.sum >&${BASH_XTRACEFD} 2>&1
   if ! git diff --quiet --cached; then
     echo "Commiting vendor, go.mod and go.sum"
-    git ci -m "Updating vendor against ${K8S_FORK}:${K8S_REV} (${K8S_REV_PARSED})" >&${BASH_XTRACEFD} 2>&1
+    git commit -m "Updating vendor against ${K8S_FORK}:${K8S_REV} (${K8S_REV_PARSED})" >&${BASH_XTRACEFD} 2>&1
   else
     echo "No changes after vendor update; skipping commit"
   fi

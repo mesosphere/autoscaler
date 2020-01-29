@@ -115,6 +115,8 @@ func NewStaticAutoscaler(
 	estimatorBuilder estimator.EstimatorBuilder,
 	backoff backoff.Backoff) *StaticAutoscaler {
 
+	klog.V(4).Infof("Entering statuc autoscaler")
+
 	processorCallbacks := newStaticAutoscalerProcessorCallbacks()
 	autoscalingContext := context.NewAutoscalingContext(opts, predicateChecker, autoscalingKubeClients, cloudProvider, expanderStrategy, estimatorBuilder, processorCallbacks)
 
@@ -206,6 +208,8 @@ func (a *StaticAutoscaler) RunOnce(currentTime time.Time) errors.AutoscalerError
 		return errors.ToAutoscalerError(errors.ApiCallError, err)
 	}
 
+	//klog.Infof("daemonsets %v", daemonsets)
+
 	// Call CloudProvider.Refresh before any other calls to cloud provider.
 	err = a.AutoscalingContext.CloudProvider.Refresh()
 	if err != nil {
@@ -216,11 +220,14 @@ func (a *StaticAutoscaler) RunOnce(currentTime time.Time) errors.AutoscalerError
 	nodeInfosForGroups, autoscalerError := getNodeInfosForGroups(
 		readyNodes, a.nodeInfoCache, autoscalingContext.CloudProvider, autoscalingContext.ListerRegistry, daemonsets, autoscalingContext.PredicateChecker, a.ignoredTaints)
 	if autoscalerError != nil {
+		klog.Infof("autoscalerError %v", autoscalerError)
 		return autoscalerError.AddPrefix("failed to build node infos for node groups: ")
 	}
+	klog.Infof("nodeInfosForGroups %v", nodeInfosForGroups)
 
 	typedErr = a.updateClusterState(allNodes, nodeInfosForGroups, currentTime)
 	if typedErr != nil {
+		klog.Infof("typedErr %v", typedErr)
 		return typedErr
 	}
 	metrics.UpdateDurationFromStart(metrics.UpdateState, stateUpdateStart)
@@ -230,7 +237,11 @@ func (a *StaticAutoscaler) RunOnce(currentTime time.Time) errors.AutoscalerError
 	scaleDownStatus := &status.ScaleDownStatus{Result: status.ScaleDownNotTried}
 	scaleDownStatusProcessorAlreadyCalled := false
 
+	klog.Infof("scaleUpStatus %v", scaleUpStatus)
+	klog.Infof("scaleDownStatus %v", scaleDownStatus)
+
 	defer func() {
+		klog.Infof("%run defer static autosacler run once")
 		// Update status information when the loop is done (regardless of reason)
 		if autoscalingContext.WriteStatusConfigMap {
 			status := a.clusterStateRegistry.GetStatus(currentTime)
@@ -252,6 +263,8 @@ func (a *StaticAutoscaler) RunOnce(currentTime time.Time) errors.AutoscalerError
 			klog.Errorf("AutoscalingStatusProcessor error: %v.", err)
 		}
 	}()
+
+	klog.Infof("before  a.clusterStateRegistry.GetUnregisteredNodes()")
 
 	// Check if there are any nodes that failed to register in Kubernetes
 	// master.
@@ -279,6 +292,9 @@ func (a *StaticAutoscaler) RunOnce(currentTime time.Time) errors.AutoscalerError
 
 	a.deleteCreatedNodesWithErrors()
 
+	klog.Infof("before fixNodeGroupSize")
+
+
 	// Check if there has been a constant difference between the number of nodes in k8s and
 	// the number of nodes on the cloud provider side.
 	// TODO: andrewskim - add protection for ready AWS nodes.
@@ -299,6 +315,7 @@ func (a *StaticAutoscaler) RunOnce(currentTime time.Time) errors.AutoscalerError
 		klog.Errorf("Failed to list unscheduled pods: %v", err)
 		return errors.ToAutoscalerError(errors.ApiCallError, err)
 	}
+	klog.Infof("unschedulablePods: %v", unschedulablePods)
 	metrics.UpdateUnschedulablePodsCount(len(unschedulablePods))
 
 	originalScheduledPods, err := scheduledPodLister.List()
@@ -306,6 +323,8 @@ func (a *StaticAutoscaler) RunOnce(currentTime time.Time) errors.AutoscalerError
 		klog.Errorf("Failed to list scheduled pods: %v", err)
 		return errors.ToAutoscalerError(errors.ApiCallError, err)
 	}
+	//klog.Infof("originalScheduledPods: %v", originalScheduledPods)
+
 
 	// scheduledPods will be mutated over this method. We keep original list of pods on originalScheduledPods.
 	scheduledPods := append([]*apiv1.Pod{}, originalScheduledPods...)
@@ -344,6 +363,8 @@ func (a *StaticAutoscaler) RunOnce(currentTime time.Time) errors.AutoscalerError
 		scaleUpStatus.Result = status.ScaleUpInCooldown
 		klog.V(1).Info("Unschedulable pods are very new, waiting one iteration for more")
 	} else {
+		klog.Infof("else line 355")
+
 		scaleUpStart := time.Now()
 		metrics.UpdateLastTime(metrics.ScaleUp, scaleUpStart)
 
@@ -369,12 +390,16 @@ func (a *StaticAutoscaler) RunOnce(currentTime time.Time) errors.AutoscalerError
 	}
 
 	if a.ScaleDownEnabled {
+		klog.Infof("scale down is enabled")
+
 		pdbs, err := pdbLister.List()
 		if err != nil {
 			scaleDownStatus.Result = status.ScaleDownError
 			klog.Errorf("Failed to list pod disruption budgets: %v", err)
 			return errors.ToAutoscalerError(errors.ApiCallError, err)
 		}
+
+		klog.Infof("pdbs", pdbs)
 
 		unneededStart := time.Now()
 

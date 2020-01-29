@@ -132,7 +132,7 @@ func (k *KonvoyManager) addNodeToNodeGroup(nodeGroup string) error {
     }
   	err = k.dynamicClient.Get(context.Background(), clusterNamespacedName, konvoyCluster)
   	if err != nil {
-      klog.Warningf("Error retrieving the konvoy cluster")
+      klog.Warningf("Error retrieving the konvoy cluster: %v -- %v", konvoyCluster.Name, err)
   	}
     newPool := make([]konvoyv1beta1.MachinePool, len(konvoyCluster.Spec.ProvisionerConfiguration.NodePools))
     for _, pool := range konvoyCluster.Spec.ProvisionerConfiguration.NodePools {
@@ -144,9 +144,10 @@ func (k *KonvoyManager) addNodeToNodeGroup(nodeGroup string) error {
     konvoyCluster.Spec.ProvisionerConfiguration.NodePools = newPool
 
     if err = k.dynamicClient.Update(context.Background(), konvoyCluster); err != nil {
-      klog.Warningf("Error updating the konvoy cluster")
+      klog.Warningf("Error updating the konvoy cluster: %v -- %v", konvoyCluster.Name, err)
       err = fmt.Errorf("Failed to add node to group %s: %v", nodeGroup, err)
     } else {
+      klog.Infof("Konvoy cluster updated successfully: %v", konvoyCluster.Name)
       return nil
     }
 	}
@@ -217,7 +218,7 @@ func (k *KonvoyManager) RemoveNodeFromNodeGroup(nodeGroup string, node string) e
 		}
   	err = k.dynamicClient.Get(context.Background(), clusterNamespacedName, konvoyCluster)
   	if err != nil {
-      klog.Warningf("Error retrieving the konvoy cluster")
+      klog.Warningf("Error retrieving the konvoy cluster: %v -- %v", konvoyCluster.Name, err)
   	}
     newPool := make([]konvoyv1beta1.MachinePool, len(konvoyCluster.Spec.ProvisionerConfiguration.NodePools))
     for _, pool := range konvoyCluster.Spec.ProvisionerConfiguration.NodePools {
@@ -229,9 +230,10 @@ func (k *KonvoyManager) RemoveNodeFromNodeGroup(nodeGroup string, node string) e
     konvoyCluster.Spec.ProvisionerConfiguration.NodePools = newPool
 
     if err = k.dynamicClient.Update(context.Background(), konvoyCluster); err != nil {
-      klog.Warningf("Error updating the konvoy cluster")
+      klog.Warningf("Error updating the konvoy cluster: %v -- %v", konvoyCluster.Name, err)
       err = fmt.Errorf("Failed to delete node %s: %v", node, err)
     } else {
+      klog.Infof("Konvoy cluster updated successfully: %v", konvoyCluster.Name)
       return nil
     }
   }

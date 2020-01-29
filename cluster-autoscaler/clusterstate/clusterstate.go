@@ -349,6 +349,7 @@ func getTargetSizes(cp cloudprovider.CloudProvider) (map[string]int, error) {
 	result := make(map[string]int)
 	for _, ng := range cp.NodeGroups() {
 		size, err := ng.TargetSize()
+		klog.Infof("TargetSize %v", size)
 		if err != nil {
 			return map[string]int{}, err
 		}
@@ -650,8 +651,10 @@ func (csr *ClusterStateRegistry) updateUnregisteredNodes(unregisteredNodes []Unr
 	for _, unregistered := range unregisteredNodes {
 		if prev, found := csr.unregisteredNodes[unregistered.Node.Name]; found {
 			result[unregistered.Node.Name] = prev
+			klog.Infof("updateUnregisteredNodes found %s: %v", unregistered.Node.Name, prev)
 		} else {
 			result[unregistered.Node.Name] = unregistered
+			klog.Infof("updateUnregisteredNodes not found %s: %v", unregistered.Node.Name, prev)
 		}
 	}
 	csr.unregisteredNodes = result
@@ -965,10 +968,13 @@ func getNotRegisteredNodes(allNodes []*apiv1.Node, cloudProviderNodeInstances ma
 	for _, node := range allNodes {
 		registered.Insert(node.Spec.ProviderID)
 	}
+	klog.Infof("Registered Nodes %v", registered)
 	notRegistered := make([]UnregisteredNode, 0)
 	for _, instances := range cloudProviderNodeInstances {
 		for _, instance := range instances {
+			klog.Infof("instance %v", instance.Id)
 			if !registered.Has(instance.Id) {
+				klog.Infof("not registered node %v", instance)
 				notRegistered = append(notRegistered, UnregisteredNode{
 					Node:              fakeNode(instance),
 					UnregisteredSince: time,

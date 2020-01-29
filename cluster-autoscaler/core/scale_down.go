@@ -706,6 +706,8 @@ func (sd *ScaleDown) TryToScaleDown(allNodes []*apiv1.Node, pods []*apiv1.Pod, p
 	gpuLabel := sd.context.CloudProvider.GPULabel()
 	availableGPUTypes := sd.context.CloudProvider.GetAvailableGPUTypes()
 
+	klog.Infof("TryToScaleDown")
+
 	resourceLimiter, errCP := sd.context.CloudProvider.GetResourceLimiter()
 	if errCP != nil {
 		scaleDownStatus.Result = status.ScaleDownError
@@ -718,6 +720,8 @@ func (sd *ScaleDown) TryToScaleDown(allNodes []*apiv1.Node, pods []*apiv1.Pod, p
 
 	nodeGroupSize := utils.GetNodeGroupSizeMap(sd.context.CloudProvider)
 	resourcesWithLimits := resourceLimiter.GetResources()
+
+	klog.Infof("Before loop nodesWithoutMaster")
 	for _, node := range nodesWithoutMaster {
 		if val, found := sd.unneededNodes[node.Name]; found {
 

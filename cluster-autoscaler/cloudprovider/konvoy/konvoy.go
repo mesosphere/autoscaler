@@ -15,6 +15,7 @@ import (
 	schedulernodeinfo "k8s.io/kubernetes/pkg/scheduler/nodeinfo"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"k8s.io/apimachinery/pkg/runtime"
+	konvoyclusterv1beta1 "github.com/mesosphere/kommander-cluster-lifecycle/pkg/apis/kommander/v1beta1"
 
 	"k8s.io/klog"
 )
@@ -307,8 +308,15 @@ func BuildKonvoy(opts config.AutoscalingOptions, do cloudprovider.NodeGroupDisco
 	}*/
 
 	//stop := make(chan struct{})
+
+	//Add route Openshift scheme
+	scheme := runtime.NewScheme()
+	if err := konvoyclusterv1beta1.AddToScheme(scheme); err != nil {
+		klog.Errorf("Unable to add konvoy management cluster to scheme: (%v)", err)
+	}
+
 	dynamicClient, err := client.New(externalConfig, client.Options{
-		Scheme: runtime.NewScheme(),
+		Scheme: scheme,
 	})
 
 	externalClient := kubeclient.NewForConfigOrDie(externalConfig)
