@@ -103,6 +103,10 @@ func (konvoy *KonvoyCloudProvider) Pricing() (cloudprovider.PricingModel, errors
 
 // NodeGroupForNode returns the node group for the given node.
 func (konvoy *KonvoyCloudProvider) NodeGroupForNode(node *apiv1.Node) (cloudprovider.NodeGroup, error) {
+	if _, found := node.ObjectMeta.Labels["node-role.kubernetes.io/master"]; found {
+		return nil, nil
+	}
+
 	nodeGroupName, err := konvoy.konvoyManager.GetNodeGroupForNode(node.Spec.ProviderID)
 	if err != nil {
 		return nil, err

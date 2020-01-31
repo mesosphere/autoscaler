@@ -14,7 +14,7 @@ import (
   "sigs.k8s.io/controller-runtime/pkg/client"
 
   konvoyclusterv1beta1 "github.com/mesosphere/kommander-cluster-lifecycle/pkg/apis/kommander/v1beta1"
-  konvoyv1beta1  "github.com/mesosphere/konvoy/pkg/apis/konvoy/v1beta1"
+//  konvoyv1beta1  "github.com/mesosphere/konvoy/pkg/apis/konvoy/v1beta1"
 )
 
 const (
@@ -124,7 +124,7 @@ func (k *KonvoyManager) SetNodeGroupSize(nodeGroup string, size int) error {
 func (k *KonvoyManager) addNodeToNodeGroup(nodeGroup string) error {
 	var err error
 	for i := 0; i < numRetries; i++ {
-    konvoyCluster := &konvoyclusterv1beta1.KonvoyManagementCluster{}
+    konvoyCluster := &konvoyclusterv1beta1.KonvoyCluster{}
     konvoyCluster.Name = k.clusterName
     clusterNamespacedName := types.NamespacedName{
       Namespace: "kommander",
@@ -134,14 +134,11 @@ func (k *KonvoyManager) addNodeToNodeGroup(nodeGroup string) error {
   	if err != nil {
       klog.Warningf("Error retrieving the konvoy cluster: %v -- %v", konvoyCluster.Name, err)
   	}
-    newPool := make([]konvoyv1beta1.MachinePool, len(konvoyCluster.Spec.ProvisionerConfiguration.NodePools))
-    for _, pool := range konvoyCluster.Spec.ProvisionerConfiguration.NodePools {
+    for i, pool := range konvoyCluster.Spec.ProvisionerConfiguration.NodePools {
       if pool.Name == nodeGroup {
-        pool.Count++
+        konvoyCluster.Spec.ProvisionerConfiguration.NodePools[i].Count++
       }
-      newPool = append(newPool, pool)
     }
-    konvoyCluster.Spec.ProvisionerConfiguration.NodePools = newPool
 
     if err = k.dynamicClient.Update(context.Background(), konvoyCluster); err != nil {
       klog.Warningf("Error updating the konvoy cluster: %v -- %v", konvoyCluster.Name, err)
@@ -210,7 +207,7 @@ func (k *KonvoyManager) RemoveNodeFromNodeGroup(nodeGroup string, node string) e
   */
   for i := 0; i < numRetries; i++ {
     // Decrease the size of the pool in Konvoy
-    konvoyCluster := &konvoyclusterv1beta1.KonvoyManagementCluster{}
+    konvoyCluster := &konvoyclusterv1beta1.KonvoyCluster{}
     konvoyCluster.Name = k.clusterName
     clusterNamespacedName := types.NamespacedName{
 			Namespace: "kommander",
@@ -220,14 +217,11 @@ func (k *KonvoyManager) RemoveNodeFromNodeGroup(nodeGroup string, node string) e
   	if err != nil {
       klog.Warningf("Error retrieving the konvoy cluster: %v -- %v", konvoyCluster.Name, err)
   	}
-    newPool := make([]konvoyv1beta1.MachinePool, len(konvoyCluster.Spec.ProvisionerConfiguration.NodePools))
-    for _, pool := range konvoyCluster.Spec.ProvisionerConfiguration.NodePools {
+    for i, pool := range konvoyCluster.Spec.ProvisionerConfiguration.NodePools {
       if pool.Name == nodeGroup {
-        pool.Count--
+        konvoyCluster.Spec.ProvisionerConfiguration.NodePools[i].Count--
       }
-      newPool = append(newPool, pool)
     }
-    konvoyCluster.Spec.ProvisionerConfiguration.NodePools = newPool
 
     if err = k.dynamicClient.Update(context.Background(), konvoyCluster); err != nil {
       klog.Warningf("Error updating the konvoy cluster: %v -- %v", konvoyCluster.Name, err)
