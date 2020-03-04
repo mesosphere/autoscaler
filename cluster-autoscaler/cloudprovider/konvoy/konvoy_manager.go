@@ -14,7 +14,6 @@ import (
   "sigs.k8s.io/controller-runtime/pkg/client"
 
   konvoyclusterv1beta1 "github.com/mesosphere/kommander-cluster-lifecycle/pkg/apis/kommander/v1beta1"
-//  konvoyv1beta1  "github.com/mesosphere/konvoy/pkg/apis/konvoy/v1beta1"
 )
 
 const (

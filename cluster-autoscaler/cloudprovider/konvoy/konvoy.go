@@ -306,13 +306,6 @@ func BuildKonvoy(opts config.AutoscalingOptions, do cloudprovider.NodeGroupDisco
 		klog.Fatalf("Failed to get kubeclient config for external cluster: %v", err)
 	}
 
-	/*konvoyConfig, err := clientcmd.BuildConfigFromFlags("", "/kubeconfig/cluster_autoscaler.kubeconfig")
-	if err != nil {
-		klog.Fatalf("Failed to get kubeclient config for konvoy cluster: %v", err)
-	}*/
-
-	//stop := make(chan struct{})
-
 	//Add route Openshift scheme
 	scheme := runtime.NewScheme()
 	if err := konvoyclusterv1beta1.AddToScheme(scheme); err != nil {
@@ -333,24 +326,6 @@ func BuildKonvoy(opts config.AutoscalingOptions, do cloudprovider.NodeGroupDisco
     nodeGroupQueueSize:     make(map[string]int),
     nodeGroupQueueSizeLock: sync.Mutex{},
   }
-	//konvoyClient := kubeclient.NewForConfigOrDie(konvoyConfig)
-
-	/*externalInformerFactory := informers.NewSharedInformerFactory(externalClient, 0)
-	konvoyInformerFactory := informers.NewSharedInformerFactory(konvoyClient, 0)
-	konvoyNodeInformer := konvoyInformerFactory.Core().V1().Nodes()
-	go konvoyNodeInformer.Informer().Run(stop)
-
-	kubemarkController, err := kubemark.NewKubemarkController(externalClient, externalInformerFactory,
-		konvoyClient, konvoyNodeInformer)
-	if err != nil {
-		klog.Fatalf("Failed to create Konvoy cloud provider: %v", err)
-	}
-
-	externalInformerFactory.Start(stop)
-	if !kubemarkController.WaitForCacheSync(stop) {
-		klog.Fatalf("Failed to sync caches for konvoy controller")
-	}
-	go kubemarkController.Run(stop)*/
 
 	provider, err := BuildKonvoyCloudProvider(konvoyManager, do, rl)
 	if err != nil {
