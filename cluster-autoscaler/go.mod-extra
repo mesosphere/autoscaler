@@ -4,9 +4,9 @@ go 1.12
 require (
   github.com/digitalocean/godo v1.27.0
   github.com/rancher/go-rancher v0.1.0
-  github.com/mesosphere/konvoy v1.3.0
+  github.com/mesosphere/konvoy master
   github.com/google/go-querystring v1.0.0
-  github.com/mesosphere/kommander-cluster-lifecycle v0.3.6-0.20200127180638-2d372ad997dd
+  github.com/mesosphere/kommander-cluster-lifecycle v0.4.11
   github.com/Azure/go-autorest v12.2.0+incompatible
 )
 
