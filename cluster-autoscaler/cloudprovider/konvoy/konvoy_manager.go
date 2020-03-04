@@ -32,6 +32,34 @@ type KonvoyManager struct {
   dynamicClient client.Client
 }
 
+// GetNodeGroups returns all node groups configured for this cloud provider.
+func (k *KonvoyManager) GetNodeGroups() []NodeGroup {
+  konvoyCluster := &konvoyclusterv1beta1.KonvoyManagementCluster{}
+  konvoyCluster.Name = k.clusterName
+  clusterNamespacedName := types.NamespacedName{
+    Namespace: "kommander",
+    Name:      konvoyCluster.Name,
+  }
+  err = k.dynamicClient.Get(context.Background(), clusterNamespacedName, konvoyCluster)
+  if err != nil {
+    klog.Warningf("Error retrieving the konvoy cluster: %v -- %v", konvoyCluster.Name, err)
+  }
+
+  var ngs []cloudprovider.NodeGroup
+  for _, pool := range konvoyCluster.Spec.ProvisionerConfiguration.NodePools {
+    // If autoscaling is enabled
+    if pool.AutoscalingOptions != nil && *pool.AutoscalingOptions.Enabled {
+      ngs = append(ngs, &NodeGroup{
+  			minSize:        *pool.AutoscalingOptions.MinSize,,
+        maxSize: *pool.AutoscalingOptions.MaxSize,
+        name: pool.Name,
+  			konvoyManager: k,
+  		})
+    }
+  }
+	return ngs
+}
+
 // GetNodeGroupSize returns the current size for the node group as observed.
 func (k *KonvoyManager) GetNodeNamesForNodeGroup(nodeGroup string) ([]string, error) {
   selector := labels.SelectorFromSet(labels.Set{nodeGroupLabel: nodeGroup})

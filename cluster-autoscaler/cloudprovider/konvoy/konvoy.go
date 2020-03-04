@@ -45,17 +45,24 @@ type KonvoyCloudProvider struct {
 
 // BuildKonvoyCloudProvider builds a CloudProvider for konvoy. Builds
 // node groups from passed in specs.
-func BuildKonvoyCloudProvider(konvoyManager *KonvoyManager, specs []string, resourceLimiter *cloudprovider.ResourceLimiter) (*KonvoyCloudProvider, error) {
+func BuildKonvoyCloudProvider(konvoyManager *KonvoyManager, do cloudprovider.NodeGroupDiscoveryOptions, resourceLimiter *cloudprovider.ResourceLimiter) (*KonvoyCloudProvider, error) {
 	konvoy := &KonvoyCloudProvider{
 		konvoyManager:      konvoyManager,
 		nodeGroups:         make([]*NodeGroup, 0),
 		resourceLimiter:    resourceLimiter,
 	}
-	for _, spec := range specs {
-		if err := konvoy.addNodeGroup(spec); err != nil {
-			return nil, err
+	var specs []string
+	if do.AutoDiscoverySpecified() {
+		nodeGroups = konvoy.NodeGroups()
+	} else {
+		for _, spec := range do.NodeGroupSpecs {
+			if err := konvoy.addNodeGroup(spec); err != nil {
+				return nil, err
+			}
 		}
 	}
+
+
 	return konvoy, nil
 }
 
@@ -85,21 +92,14 @@ func (konvoy *KonvoyCloudProvider) GetAvailableGPUTypes() map[string]struct{} {
 }
 
 // NodeGroups returns all node groups configured for this cloud provider.
-func (konvoy *KonvoyCloudProvider) NodeGroups() []cloudprovider.NodeGroup {
-	result := make([]cloudprovider.NodeGroup, 0, len(konvoy.nodeGroups))
-	for _, nodegroup := range konvoy.nodeGroups {
-		result = append(result, nodegroup)
-	}
-	return result
+func (konvoy *KonvoyCloudProvider) NodeGroups() []NodeGroup {
+  return konvoy.konvoyManager.GetNodeGroups()
 }
 
 // Pricing returns pricing model for this cloud provider or error if not available.
 func (konvoy *KonvoyCloudProvider) Pricing() (cloudprovider.PricingModel, errors.AutoscalerError) {
 	return nil, cloudprovider.ErrNotImplemented
 }
-
-
-
 
 // NodeGroupForNode returns the node group for the given node.
 func (konvoy *KonvoyCloudProvider) NodeGroupForNode(node *apiv1.Node) (cloudprovider.NodeGroup, error) {
@@ -352,7 +352,7 @@ func BuildKonvoy(opts config.AutoscalingOptions, do cloudprovider.NodeGroupDisco
 	}
 	go kubemarkController.Run(stop)*/
 
-	provider, err := BuildKonvoyCloudProvider(konvoyManager, do.NodeGroupSpecs, rl)
+	provider, err := BuildKonvoyCloudProvider(konvoyManager, do, rl)
 	if err != nil {
 		klog.Fatalf("Failed to create Konvoy cloud provider: %v", err)
 	}
