@@ -46,7 +46,7 @@ rules:
     resources: ["konvoyclusters"]
     verbs: ["watch", "list", "get", "update"]
   - apiGroups: ["kommander.mesosphere.io"]
-    resources: ["konvoymanagementclusters"]
+    resources: ["konvoyclusters"]
     verbs: ["watch", "list", "get", "update"]
   - apiGroups: [""]
     resources:
