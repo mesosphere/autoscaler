@@ -15,7 +15,7 @@ import (
 	schedulernodeinfo "k8s.io/kubernetes/pkg/scheduler/nodeinfo"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"k8s.io/apimachinery/pkg/runtime"
-	konvoyclusterv1beta1 "github.com/mesosphere/kommander-cluster-lifecycle/pkg/apis/kommander/v1beta1"
+	konvoyclusterv1beta1 "github.com/mesosphere/kommander-cluster-lifecycle/clientapis/pkg/apis/kommander/v1beta1"
 
 	"k8s.io/klog"
 )
@@ -51,9 +51,8 @@ func BuildKonvoyCloudProvider(konvoyManager *KonvoyManager, do cloudprovider.Nod
 		nodeGroups:         make([]*NodeGroup, 0),
 		resourceLimiter:    resourceLimiter,
 	}
-	var specs []string
 	if do.AutoDiscoverySpecified() {
-		nodeGroups = konvoy.NodeGroups()
+		konvoy.nodeGroups = konvoy.konvoyManager.GetNodeGroups()
 	} else {
 		for _, spec := range do.NodeGroupSpecs {
 			if err := konvoy.addNodeGroup(spec); err != nil {
@@ -92,8 +91,12 @@ func (konvoy *KonvoyCloudProvider) GetAvailableGPUTypes() map[string]struct{} {
 }
 
 // NodeGroups returns all node groups configured for this cloud provider.
-func (konvoy *KonvoyCloudProvider) NodeGroups() []NodeGroup {
-  return konvoy.konvoyManager.GetNodeGroups()
+func (konvoy *KonvoyCloudProvider) NodeGroups() []cloudprovider.NodeGroup {
+	nodeGroups := make([]cloudprovider.NodeGroup, len(konvoy.konvoyManager.GetNodeGroups()))
+	for i, ng := range konvoy.konvoyManager.GetNodeGroups() {
+		nodeGroups[i] = ng
+	}
+	return nodeGroups
 }
 
 // Pricing returns pricing model for this cloud provider or error if not available.

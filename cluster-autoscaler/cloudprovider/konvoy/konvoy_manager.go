@@ -13,7 +13,7 @@ import (
 	"k8s.io/klog"
   "sigs.k8s.io/controller-runtime/pkg/client"
 
-  konvoyclusterv1beta1 "github.com/mesosphere/kommander-cluster-lifecycle/pkg/apis/kommander/v1beta1"
+  konvoyclusterv1beta1 "github.com/mesosphere/kommander-cluster-lifecycle/clientapis/pkg/apis/kommander/v1beta1"
 )
 
 const (
@@ -32,26 +32,26 @@ type KonvoyManager struct {
 }
 
 // GetNodeGroups returns all node groups configured for this cloud provider.
-func (k *KonvoyManager) GetNodeGroups() []NodeGroup {
-  konvoyCluster := &konvoyclusterv1beta1.KonvoyManagementCluster{}
+func (k *KonvoyManager) GetNodeGroups() []*NodeGroup {
+  konvoyCluster := &konvoyclusterv1beta1.KonvoyCluster{}
   konvoyCluster.Name = k.clusterName
   clusterNamespacedName := types.NamespacedName{
     Namespace: "kommander",
     Name:      konvoyCluster.Name,
   }
-  err = k.dynamicClient.Get(context.Background(), clusterNamespacedName, konvoyCluster)
+  err := k.dynamicClient.Get(context.Background(), clusterNamespacedName, konvoyCluster)
   if err != nil {
     klog.Warningf("Error retrieving the konvoy cluster: %v -- %v", konvoyCluster.Name, err)
   }
 
-  var ngs []cloudprovider.NodeGroup
+  var ngs []*NodeGroup
   for _, pool := range konvoyCluster.Spec.ProvisionerConfiguration.NodePools {
     // If autoscaling is enabled
-    if pool.AutoscalingOptions != nil && *pool.AutoscalingOptions.Enabled {
+    if pool.AutoscalingOptions != nil {
       ngs = append(ngs, &NodeGroup{
-  			minSize:        *pool.AutoscalingOptions.MinSize,,
-        maxSize: *pool.AutoscalingOptions.MaxSize,
-        name: pool.Name,
+  			minSize:        int(*pool.AutoscalingOptions.MinSize),
+        maxSize: int(*pool.AutoscalingOptions.MaxSize),
+        Name: pool.Name,
   			konvoyManager: k,
   		})
     }
