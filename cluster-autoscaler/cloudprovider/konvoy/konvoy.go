@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"sync"
 
+	konvoyclusterv1beta1 "github.com/mesosphere/kommander-cluster-lifecycle/clientapis/pkg/apis/kommander/v1beta1"
 	apiv1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/autoscaler/cluster-autoscaler/cloudprovider"
 	"k8s.io/autoscaler/cluster-autoscaler/config"
 	"k8s.io/autoscaler/cluster-autoscaler/config/dynamic"
@@ -14,8 +16,6 @@ import (
 	"k8s.io/client-go/rest"
 	schedulernodeinfo "k8s.io/kubernetes/pkg/scheduler/nodeinfo"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"k8s.io/apimachinery/pkg/runtime"
-	konvoyclusterv1beta1 "github.com/mesosphere/kommander-cluster-lifecycle/clientapis/pkg/apis/kommander/v1beta1"
 
 	"k8s.io/klog"
 )
@@ -38,18 +38,18 @@ var (
 
 // KonvoyCloudProvider implements CloudProvider interface for konvoy
 type KonvoyCloudProvider struct {
-	konvoyManager      *KonvoyManager
-	nodeGroups         []*NodeGroup
-	resourceLimiter    *cloudprovider.ResourceLimiter
+	konvoyManager   *KonvoyManager
+	nodeGroups      []*NodeGroup
+	resourceLimiter *cloudprovider.ResourceLimiter
 }
 
 // BuildKonvoyCloudProvider builds a CloudProvider for konvoy. Builds
 // node groups from passed in specs.
 func BuildKonvoyCloudProvider(konvoyManager *KonvoyManager, do cloudprovider.NodeGroupDiscoveryOptions, resourceLimiter *cloudprovider.ResourceLimiter) (*KonvoyCloudProvider, error) {
 	konvoy := &KonvoyCloudProvider{
-		konvoyManager:      konvoyManager,
-		nodeGroups:         make([]*NodeGroup, 0),
-		resourceLimiter:    resourceLimiter,
+		konvoyManager:   konvoyManager,
+		nodeGroups:      make([]*NodeGroup, 0),
+		resourceLimiter: resourceLimiter,
 	}
 	if do.AutoDiscoverySpecified() {
 		konvoy.nodeGroups = konvoy.konvoyManager.GetNodeGroups()
@@ -60,7 +60,6 @@ func BuildKonvoyCloudProvider(konvoyManager *KonvoyManager, do cloudprovider.Nod
 			}
 		}
 	}
-
 
 	return konvoy, nil
 }
@@ -153,10 +152,10 @@ func (konvoy *KonvoyCloudProvider) Cleanup() error {
 
 // NodeGroup implements NodeGroup interface.
 type NodeGroup struct {
-	Name               string
+	Name          string
 	konvoyManager *KonvoyManager
-	minSize            int
-	maxSize            int
+	minSize       int
+	maxSize       int
 }
 
 // Id returns nodegroup name.
@@ -293,10 +292,10 @@ func buildNodeGroup(value string, konvoyManager *KonvoyManager) (*NodeGroup, err
 	klog.Infof("buildNodeGroup: value %v; %v; %v; %v", value, spec.MinSize, spec.MaxSize, spec.Name)
 
 	nodeGroup := &NodeGroup{
-		Name:               spec.Name,
+		Name:          spec.Name,
 		konvoyManager: konvoyManager,
-		minSize:            spec.MinSize,
-		maxSize:            spec.MaxSize,
+		minSize:       spec.MinSize,
+		maxSize:       spec.MaxSize,
 	}
 
 	return nodeGroup, nil
@@ -309,7 +308,6 @@ func BuildKonvoy(opts config.AutoscalingOptions, do cloudprovider.NodeGroupDisco
 		klog.Fatalf("Failed to get kubeclient config for external cluster: %v", err)
 	}
 
-	//Add route Openshift scheme
 	scheme := runtime.NewScheme()
 	if err := konvoyclusterv1beta1.AddToScheme(scheme); err != nil {
 		klog.Errorf("Unable to add konvoy management cluster to scheme: (%v)", err)
@@ -320,15 +318,15 @@ func BuildKonvoy(opts config.AutoscalingOptions, do cloudprovider.NodeGroupDisco
 	})
 
 	externalClient := kubeclient.NewForConfigOrDie(externalConfig)
-  konvoyManager := &KonvoyManager{
-		provisioner: "aws",
-		dynamicClient: dynamicClient,
-    clusterName: opts.ClusterName,
-    kubeClient: externalClient,
-    createNodeQueue:        make(chan string, 1000),
-    nodeGroupQueueSize:     make(map[string]int),
-    nodeGroupQueueSizeLock: sync.Mutex{},
-  }
+	konvoyManager := &KonvoyManager{
+		provisioner:            "aws",
+		dynamicClient:          dynamicClient,
+		clusterName:            opts.ClusterName,
+		kubeClient:             externalClient,
+		createNodeQueue:        make(chan string, 1000),
+		nodeGroupQueueSize:     make(map[string]int),
+		nodeGroupQueueSizeLock: sync.Mutex{},
+	}
 
 	provider, err := BuildKonvoyCloudProvider(konvoyManager, do, rl)
 	if err != nil {
