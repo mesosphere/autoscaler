@@ -17,8 +17,7 @@ require (
 	github.com/google/go-querystring v1.0.0
 	github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
 	github.com/json-iterator/go v1.1.9
-	github.com/mesosphere/kommander-cluster-lifecycle v0.4.11
-	github.com/mesosphere/konvoy v1.4.1-0.20200304112959-67ec00958a11 // indirect
+	github.com/mesosphere/kommander-cluster-lifecycle/clientapis v0.0.0-20200310195319-9ade9d29b183
 	github.com/prometheus/client_golang v1.1.0
 	github.com/satori/go.uuid v1.2.0
 	github.com/spf13/pflag v1.0.5
@@ -33,11 +32,10 @@ require (
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
 	k8s.io/cloud-provider v0.0.0
 	k8s.io/component-base v0.17.3
-	k8s.io/helm v2.16.3+incompatible
 	k8s.io/klog v1.0.0
 	k8s.io/kubernetes v0.0.0
 	k8s.io/legacy-cloud-providers v0.0.0
-	sigs.k8s.io/controller-runtime v0.5.0
+	sigs.k8s.io/controller-runtime v0.5.1-0.20200307095134-d0de78d9f1c1
 )
 
 replace (
@@ -314,35 +312,35 @@ replace (
 	gotest.tools => gotest.tools v2.2.0+incompatible
 	gotest.tools/gotestsum => gotest.tools/gotestsum v0.3.5
 	honnef.co/go/tools => honnef.co/go/tools v0.0.1-2019.2.2
-	k8s.io/api => /tmp/ca-update-vendor.S2d1/kubernetes/staging/src/k8s.io/api
-	k8s.io/apiextensions-apiserver => /tmp/ca-update-vendor.S2d1/kubernetes/staging/src/k8s.io/apiextensions-apiserver
-	k8s.io/apimachinery => /tmp/ca-update-vendor.S2d1/kubernetes/staging/src/k8s.io/apimachinery
-	k8s.io/apiserver => /tmp/ca-update-vendor.S2d1/kubernetes/staging/src/k8s.io/apiserver
-	k8s.io/cli-runtime => /tmp/ca-update-vendor.S2d1/kubernetes/staging/src/k8s.io/cli-runtime
-	k8s.io/client-go => /tmp/ca-update-vendor.S2d1/kubernetes/staging/src/k8s.io/client-go
-	k8s.io/cloud-provider => /tmp/ca-update-vendor.S2d1/kubernetes/staging/src/k8s.io/cloud-provider
-	k8s.io/cluster-bootstrap => /tmp/ca-update-vendor.S2d1/kubernetes/staging/src/k8s.io/cluster-bootstrap
-	k8s.io/code-generator => /tmp/ca-update-vendor.S2d1/kubernetes/staging/src/k8s.io/code-generator
-	k8s.io/component-base => /tmp/ca-update-vendor.S2d1/kubernetes/staging/src/k8s.io/component-base
-	k8s.io/cri-api => /tmp/ca-update-vendor.S2d1/kubernetes/staging/src/k8s.io/cri-api
-	k8s.io/csi-translation-lib => /tmp/ca-update-vendor.S2d1/kubernetes/staging/src/k8s.io/csi-translation-lib
+	k8s.io/api => /tmp/ca-update-vendor.BjQ9/kubernetes/staging/src/k8s.io/api
+	k8s.io/apiextensions-apiserver => /tmp/ca-update-vendor.BjQ9/kubernetes/staging/src/k8s.io/apiextensions-apiserver
+	k8s.io/apimachinery => /tmp/ca-update-vendor.BjQ9/kubernetes/staging/src/k8s.io/apimachinery
+	k8s.io/apiserver => /tmp/ca-update-vendor.BjQ9/kubernetes/staging/src/k8s.io/apiserver
+	k8s.io/cli-runtime => /tmp/ca-update-vendor.BjQ9/kubernetes/staging/src/k8s.io/cli-runtime
+	k8s.io/client-go => /tmp/ca-update-vendor.BjQ9/kubernetes/staging/src/k8s.io/client-go
+	k8s.io/cloud-provider => /tmp/ca-update-vendor.BjQ9/kubernetes/staging/src/k8s.io/cloud-provider
+	k8s.io/cluster-bootstrap => /tmp/ca-update-vendor.BjQ9/kubernetes/staging/src/k8s.io/cluster-bootstrap
+	k8s.io/code-generator => /tmp/ca-update-vendor.BjQ9/kubernetes/staging/src/k8s.io/code-generator
+	k8s.io/component-base => /tmp/ca-update-vendor.BjQ9/kubernetes/staging/src/k8s.io/component-base
+	k8s.io/cri-api => /tmp/ca-update-vendor.BjQ9/kubernetes/staging/src/k8s.io/cri-api
+	k8s.io/csi-translation-lib => /tmp/ca-update-vendor.BjQ9/kubernetes/staging/src/k8s.io/csi-translation-lib
 	k8s.io/gengo => k8s.io/gengo v0.0.0-20190822140433-26a664648505
 	k8s.io/heapster => k8s.io/heapster v1.2.0-beta.1
 	k8s.io/klog => k8s.io/klog v0.4.0
-	k8s.io/kube-aggregator => /tmp/ca-update-vendor.S2d1/kubernetes/staging/src/k8s.io/kube-aggregator
-	k8s.io/kube-controller-manager => /tmp/ca-update-vendor.S2d1/kubernetes/staging/src/k8s.io/kube-controller-manager
+	k8s.io/kube-aggregator => /tmp/ca-update-vendor.BjQ9/kubernetes/staging/src/k8s.io/kube-aggregator
+	k8s.io/kube-controller-manager => /tmp/ca-update-vendor.BjQ9/kubernetes/staging/src/k8s.io/kube-controller-manager
 	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20190816220812-743ec37842bf
-	k8s.io/kube-proxy => /tmp/ca-update-vendor.S2d1/kubernetes/staging/src/k8s.io/kube-proxy
-	k8s.io/kube-scheduler => /tmp/ca-update-vendor.S2d1/kubernetes/staging/src/k8s.io/kube-scheduler
-	k8s.io/kubectl => /tmp/ca-update-vendor.S2d1/kubernetes/staging/src/k8s.io/kubectl
-	k8s.io/kubelet => /tmp/ca-update-vendor.S2d1/kubernetes/staging/src/k8s.io/kubelet
-	k8s.io/legacy-cloud-providers => /tmp/ca-update-vendor.S2d1/kubernetes/staging/src/k8s.io/legacy-cloud-providers
-	k8s.io/metrics => /tmp/ca-update-vendor.S2d1/kubernetes/staging/src/k8s.io/metrics
-	k8s.io/node-api => /tmp/ca-update-vendor.S2d1/kubernetes/staging/src/k8s.io/node-api
+	k8s.io/kube-proxy => /tmp/ca-update-vendor.BjQ9/kubernetes/staging/src/k8s.io/kube-proxy
+	k8s.io/kube-scheduler => /tmp/ca-update-vendor.BjQ9/kubernetes/staging/src/k8s.io/kube-scheduler
+	k8s.io/kubectl => /tmp/ca-update-vendor.BjQ9/kubernetes/staging/src/k8s.io/kubectl
+	k8s.io/kubelet => /tmp/ca-update-vendor.BjQ9/kubernetes/staging/src/k8s.io/kubelet
+	k8s.io/legacy-cloud-providers => /tmp/ca-update-vendor.BjQ9/kubernetes/staging/src/k8s.io/legacy-cloud-providers
+	k8s.io/metrics => /tmp/ca-update-vendor.BjQ9/kubernetes/staging/src/k8s.io/metrics
+	k8s.io/node-api => /tmp/ca-update-vendor.BjQ9/kubernetes/staging/src/k8s.io/node-api
 	k8s.io/repo-infra => k8s.io/repo-infra v0.0.0-20181204233714-00fe14e3d1a3
-	k8s.io/sample-apiserver => /tmp/ca-update-vendor.S2d1/kubernetes/staging/src/k8s.io/sample-apiserver
-	k8s.io/sample-cli-plugin => /tmp/ca-update-vendor.S2d1/kubernetes/staging/src/k8s.io/sample-cli-plugin
-	k8s.io/sample-controller => /tmp/ca-update-vendor.S2d1/kubernetes/staging/src/k8s.io/sample-controller
+	k8s.io/sample-apiserver => /tmp/ca-update-vendor.BjQ9/kubernetes/staging/src/k8s.io/sample-apiserver
+	k8s.io/sample-cli-plugin => /tmp/ca-update-vendor.BjQ9/kubernetes/staging/src/k8s.io/sample-cli-plugin
+	k8s.io/sample-controller => /tmp/ca-update-vendor.BjQ9/kubernetes/staging/src/k8s.io/sample-controller
 	k8s.io/utils => k8s.io/utils v0.0.0-20190801114015-581e00157fb1
 	modernc.org/cc => modernc.org/cc v1.0.0
 	modernc.org/golex => modernc.org/golex v1.0.0
@@ -359,14 +357,16 @@ replace github.com/digitalocean/godo => github.com/digitalocean/godo v1.27.0
 
 replace github.com/rancher/go-rancher => github.com/rancher/go-rancher v0.1.0
 
-replace github.com/mesosphere/konvoy => github.com/mesosphere/konvoy v1.4.1-0.20200304112959-67ec00958a11
+replace github.com/mesosphere/konvoy => github.com/mesosphere/konvoy v1.4.1-0.20200310090954-4cd2e24282f1
+
+replace github.com/mesosphere/konvoy/clientapis => github.com/mesosphere/konvoy/clientapis v0.0.0-20200310090954-4cd2e24282f1
 
 replace github.com/google/go-querystring => github.com/google/go-querystring v1.0.0
 
-replace github.com/mesosphere/kommander-cluster-lifecycle => github.com/mesosphere/kommander-cluster-lifecycle v0.4.11
+replace github.com/mesosphere/kommander-cluster-lifecycle/clientapis => github.com/mesosphere/kommander-cluster-lifecycle/clientapis v0.0.0-20200310195319-9ade9d29b183
 
 replace k8s.io/helm => k8s.io/helm v2.16.3+incompatible
 
 replace github.com/Azure/go-autorest => github.com/Azure/go-autorest v13.0.0+incompatible
 
-replace k8s.io/kubernetes => /tmp/ca-update-vendor.S2d1/kubernetes
+replace k8s.io/kubernetes => /tmp/ca-update-vendor.BjQ9/kubernetes
