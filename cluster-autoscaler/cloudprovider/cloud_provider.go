@@ -41,8 +41,6 @@ const (
 	GceProviderName = "gce"
 	// MagnumProviderName gets the provider name of magnum
 	MagnumProviderName = "magnum"
-	// KubemarkProviderName gets the provider name of kubemark
-	KubemarkProviderName = "kubemark"
 	// KonvoyProviderName gets the provider name of konvoy
 	KonvoyProviderName = "konvoy"
 )
