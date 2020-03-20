@@ -18,6 +18,7 @@ require (
 	github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
 	github.com/json-iterator/go v1.1.9
 	github.com/mesosphere/kommander-cluster-lifecycle/clientapis v0.0.0-20200310195319-9ade9d29b183
+	github.com/mesosphere/konvoy/clientapis v0.0.0
 	github.com/prometheus/client_golang v1.1.0
 	github.com/satori/go.uuid v1.2.0
 	github.com/spf13/pflag v1.0.5
@@ -35,6 +36,7 @@ require (
 	k8s.io/klog v1.0.0
 	k8s.io/kubernetes v0.0.0
 	k8s.io/legacy-cloud-providers v0.0.0
+	k8s.io/utils v0.0.0-20200229041039-0a110f9eb7ab
 	sigs.k8s.io/controller-runtime v0.5.1-0.20200307095134-d0de78d9f1c1
 )
 
