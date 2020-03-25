@@ -162,7 +162,6 @@ spec:
             - --alsologtostderr
             - --cluster-name=out-darwin
             - --cloud-provider=konvoy
-            - --nodes=4:6:worker
             - --scale-down-unneeded-time=1m0s
             - --scale-down-delay-after-add=1m0s
             - --scale-down-unready-time=1m0s
