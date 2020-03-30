@@ -130,10 +130,7 @@ func (konvoy *KonvoyCloudProvider) GetResourceLimiter() (*cloudprovider.Resource
 // Refresh is called before every main loop and can be used to dynamically update cloud provider state.
 // In particular the list of node groups returned by NodeGroups can change as a result of CloudProvider.Refresh().
 func (konvoy *KonvoyCloudProvider) Refresh() error {
-	if err := konvoy.konvoyManager.forceRefresh(); err != nil {
-		return err
-	}
-	return nil
+	return konvoy.konvoyManager.forceRefresh()
 }
 
 // Cleanup cleans up all resources before the cloud provider is removed
