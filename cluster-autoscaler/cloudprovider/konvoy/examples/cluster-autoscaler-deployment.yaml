@@ -166,4 +166,5 @@ spec:
             - --scale-down-delay-after-add=1m0s
             - --scale-down-unready-time=1m0s
             - --node-deletion-delay-timeout=10m0s
+            - --node-group-auto-discovery=konvoy:namespace=konvoy
             - --v=5

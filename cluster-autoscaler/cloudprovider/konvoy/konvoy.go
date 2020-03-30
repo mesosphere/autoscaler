@@ -2,6 +2,7 @@ package konvoy
 
 import (
 	"fmt"
+	"strings"
 
 	kommanderv1beta1 "github.com/mesosphere/kommander-cluster-lifecycle/clientapis/pkg/apis/kommander/v1beta1"
 	apiv1 "k8s.io/api/core/v1"
@@ -30,6 +31,11 @@ const (
 	// KonvoyNodeAnnotationKey is annotation that is set on kubernetes nodes
 	// that needs to be delete.
 	KonvoyNodeAnnotationKey = "konvoy.d2iq.io/delete-machine"
+
+	// Default `namespace` for autoscaled cluster.
+	DefaultKonvoyClusterNamespace = "konvoy"
+
+	autoDiscovererTypeKonvoy = "konvoy"
 )
 
 var (
@@ -145,6 +151,14 @@ func BuildKonvoy(opts config.AutoscalingOptions, do cloudprovider.NodeGroupDisco
 		klog.Fatalf("Failed to get kubeclient config for external cluster: %v", err)
 	}
 
+	konvoyOpts, err := parseKonvoyAutodiscoveryOptions(do)
+	if err != nil {
+		klog.Fatalf("Failed to parse autodiscovery options: %v", err)
+	}
+	if konvoyOpts.Namespace == "" {
+		klog.Fatalf("Failed to retrieve cluster namespace")
+	}
+
 	scheme := runtime.NewScheme()
 	if err := kommanderv1beta1.AddToScheme(scheme); err != nil {
 		klog.Errorf("Unable to add konvoy management cluster to scheme: (%v)", err)
@@ -156,10 +170,11 @@ func BuildKonvoy(opts config.AutoscalingOptions, do cloudprovider.NodeGroupDisco
 
 	externalClient := kubeclient.NewForConfigOrDie(externalConfig)
 	konvoyManager := &KonvoyManager{
-		provisioner:   provisionerAWS,
-		dynamicClient: dynamicClient,
-		clusterName:   opts.ClusterName,
-		kubeClient:    externalClient,
+		provisioner:      provisionerAWS,
+		dynamicClient:    dynamicClient,
+		clusterName:      opts.ClusterName,
+		clusterNamespace: konvoyOpts.Namespace,
+		kubeClient:       externalClient,
 	}
 	if err := konvoyManager.forceRefresh(); err != nil {
 		klog.Fatalf("Failed to create Konovy Manager: %v", err)
@@ -170,4 +185,42 @@ func BuildKonvoy(opts config.AutoscalingOptions, do cloudprovider.NodeGroupDisco
 		klog.Fatalf("Failed to create Konvoy cloud provider: %v", err)
 	}
 	return provider
+}
+
+func parseKonvoyAutodiscoveryOptions(do cloudprovider.NodeGroupDiscoveryOptions) (*KonvoyAutodisoveryOptions, error) {
+	opts := &KonvoyAutodisoveryOptions{}
+
+	for _, spec := range do.NodeGroupAutoDiscoverySpecs {
+		tokens := strings.Split(spec, ":")
+		if len(tokens) != 2 {
+			return opts, fmt.Errorf("spec \"%s\" should be discoverer:key=value,key=value", spec)
+		}
+		discoverer := tokens[0]
+		if discoverer != autoDiscovererTypeKonvoy {
+			return opts, fmt.Errorf("unsupported discoverer specified: %s", discoverer)
+		}
+
+		for _, arg := range strings.Split(tokens[1], ",") {
+			kv := strings.Split(arg, "=")
+			if len(kv) != 2 {
+				return opts, fmt.Errorf("invalid key=value pair %s", kv)
+			}
+			k, v := kv[0], kv[1]
+
+			if k == "namespace" {
+				opts.Namespace = v
+			}
+		}
+	}
+
+	// If no namespace was parsed use default `konvoy` namespace.
+	if opts.Namespace == "" {
+		opts.Namespace = DefaultKonvoyClusterNamespace
+	}
+
+	return opts, nil
+}
+
+type KonvoyAutodisoveryOptions struct {
+	Namespace string
 }

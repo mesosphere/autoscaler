@@ -21,16 +21,18 @@ const (
 	nodeGroupLabel = "autoscaling.k8s.io/nodegroup"
 	numRetries     = 3
 
-	provisionerAWS = "aws"
+	provisionerAWS   = "aws"
+	provisionerAzure = "azure"
 
 	unknownTargetSize = -1
 )
 
 type KonvoyManager struct {
-	provisioner   string
-	clusterName   string
-	kubeClient    kubeclient.Interface
-	dynamicClient client.Client
+	provisioner      string
+	clusterName      string
+	clusterNamespace string
+	kubeClient       kubeclient.Interface
+	dynamicClient    client.Client
 
 	nodeGroupsMutex sync.RWMutex
 	nodeGroups      []*NodeGroup
@@ -48,14 +50,13 @@ func (k *KonvoyManager) forceRefresh() error {
 	defer k.nodeGroupsMutex.Unlock()
 
 	konvoyCluster := &kommanderv1beta1.KonvoyCluster{}
-	konvoyCluster.Name = k.clusterName
 	clusterNamespacedName := types.NamespacedName{
-		Namespace: "kommander",
-		Name:      konvoyCluster.Name,
+		Namespace: k.clusterNamespace,
+		Name:      k.clusterName,
 	}
 	err := k.dynamicClient.Get(context.Background(), clusterNamespacedName, konvoyCluster)
 	if err != nil {
-		klog.Warningf("Error retrieving the konvoy cluster: %v -- %v", konvoyCluster.Name, err)
+		klog.Errorf("Error retrieving the konvoy cluster: %v -- %v", konvoyCluster.Name, err)
 		return err
 	}
 
@@ -98,10 +99,12 @@ func (k *KonvoyManager) GetNodeNamesForNodeGroup(nodeGroup string) ([]string, er
 
 // kubernetesNodeName returns a node name that should be used based on the provider
 func kubernetesNodeName(node *apiv1.Node, provisioner string) string {
-	if provisioner == provisionerAWS {
+	switch provisioner {
+	case provisionerAWS, provisionerAzure:
 		return node.Spec.ProviderID
+	default:
+		return node.ObjectMeta.Name
 	}
-	return node.ObjectMeta.Name
 }
 
 // GetNodeGroupSize returns the current size for the node group as observed.
@@ -123,7 +126,7 @@ func (k *KonvoyManager) GetNodeGroupTargetSize(nodeGroupName string) (int, error
 	konvoyCluster := &kommanderv1beta1.KonvoyCluster{}
 	konvoyCluster.Name = k.clusterName
 	clusterNamespacedName := types.NamespacedName{
-		Namespace: "kommander",
+		Namespace: k.clusterNamespace,
 		Name:      konvoyCluster.Name,
 	}
 	if err := k.dynamicClient.Get(context.Background(), clusterNamespacedName, konvoyCluster); err != nil {
@@ -145,7 +148,7 @@ func (k *KonvoyManager) setNodeGroupTargetSize(nodeGroupName string, newSize int
 		konvoyCluster := &kommanderv1beta1.KonvoyCluster{}
 		konvoyCluster.Name = k.clusterName
 		clusterNamespacedName := types.NamespacedName{
-			Namespace: "kommander",
+			Namespace: k.clusterNamespace,
 			Name:      konvoyCluster.Name,
 		}
 		err = k.dynamicClient.Get(context.Background(), clusterNamespacedName, konvoyCluster)
@@ -167,7 +170,7 @@ func (k *KonvoyManager) setNodeGroupTargetSize(nodeGroupName string, newSize int
 		konvoyCluster.Spec.ProvisionerConfiguration.NodePools[targetPoolIndex].Count = int32(newSize)
 
 		if err = k.dynamicClient.Update(context.Background(), konvoyCluster); err != nil {
-			klog.Warningf("Error updating the konvoy cluster %s: %v", konvoyCluster.Name, err)
+			klog.Errorf("Error updating the konvoy cluster %s: %v", konvoyCluster.Name, err)
 			err = fmt.Errorf("failed to set target size %d for node group %s: %v", newSize, nodeGroupName, err)
 		} else {
 			klog.Infof("Konvoy %s cluster target size set to %d for node group %s", konvoyCluster.Name, nodeGroupName, newSize)
