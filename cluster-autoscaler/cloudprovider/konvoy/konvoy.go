@@ -80,9 +80,7 @@ func (konvoy *KonvoyCloudProvider) GetAvailableGPUTypes() map[string]struct{} {
 func (konvoy *KonvoyCloudProvider) NodeGroups() []cloudprovider.NodeGroup {
 	ngs := konvoy.konvoyManager.GetNodeGroups()
 	out := make([]cloudprovider.NodeGroup, len(ngs))
-	for i, ng := range ngs {
-		out[i] = ng
-	}
+	copy(out, ngs)
 	return out
 }
 
