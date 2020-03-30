@@ -173,7 +173,7 @@ func (k *KonvoyManager) setNodeGroupTargetSize(nodeGroupName string, newSize int
 			klog.Errorf("Error updating the konvoy cluster %s: %v", konvoyCluster.Name, err)
 			err = fmt.Errorf("failed to set target size %d for node group %s: %v", newSize, nodeGroupName, err)
 		} else {
-			klog.Infof("Konvoy %s cluster target size set to %d for node group %s", konvoyCluster.Name, nodeGroupName, newSize)
+			klog.Infof("Konvoy %s cluster target size set to %d for node group %s", konvoyCluster.Name, newSize, nodeGroupName)
 			return nil
 		}
 	}

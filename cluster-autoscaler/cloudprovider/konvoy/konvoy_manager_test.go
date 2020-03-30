@@ -96,6 +96,7 @@ func TestKonvoyManagerGetNodeGroups(t *testing.T) {
 			dynamicClient: dynamicClient,
 			clusterName:   test.clusterName,
 		}
+		mgr.forceRefresh()
 
 		nodeGroups := mgr.GetNodeGroups()
 		// set the konvoyManager to nil so we can easily compare the node groups
