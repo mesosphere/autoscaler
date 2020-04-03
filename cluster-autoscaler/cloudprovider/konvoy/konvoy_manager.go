@@ -15,14 +15,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kommanderv1beta1 "github.com/mesosphere/kommander-cluster-lifecycle/clientapis/pkg/apis/kommander/v1beta1"
+	konvoyconstants "github.com/mesosphere/konvoy/clientapis/pkg/constants"
 )
 
 const (
 	nodeGroupLabel = "autoscaling.k8s.io/nodegroup"
 	numRetries     = 3
-
-	provisionerAWS   = "aws"
-	provisionerAzure = "azure"
 
 	unknownTargetSize = -1
 )
@@ -100,7 +98,7 @@ func (k *KonvoyManager) GetNodeNamesForNodeGroup(nodeGroup string) ([]string, er
 // kubernetesNodeName returns a node name that should be used based on the provider
 func kubernetesNodeName(node *apiv1.Node, provisioner string) string {
 	switch provisioner {
-	case provisionerAWS, provisionerAzure:
+	case konvoyconstants.ProvisionerAWS, konvoyconstants.ProvisionerAzure:
 		return node.Spec.ProviderID
 	default:
 		return node.ObjectMeta.Name
@@ -144,6 +142,7 @@ func (k *KonvoyManager) GetNodeGroupTargetSize(nodeGroupName string) (int, error
 
 func (k *KonvoyManager) setNodeGroupTargetSize(nodeGroupName string, newSize int) error {
 	var err error
+	klog.Infof("Setting the new target size '%d' to group '%s'", newSize, nodeGroupName)
 	for i := 0; i < numRetries; i++ {
 		konvoyCluster := &kommanderv1beta1.KonvoyCluster{}
 		konvoyCluster.Name = k.clusterName
@@ -230,7 +229,10 @@ func (k *KonvoyManager) RemoveNodeFromNodeGroup(nodeGroupName string, nodeName s
 	}
 
 	kubernetesNode.Annotations[KonvoyNodeAnnotationKey] = time.Now().String()
-	if err := k.dynamicClient.Update(context.Background(), kubernetesNode); err != nil {
+	klog.Infof("Adding annotation node with name: %v", kubernetesNode.Name)
+	_, err = k.kubeClient.CoreV1().Nodes().Update(kubernetesNode)
+	if err != nil {
+		klog.Errorf("unable to update the kubernetes node: %s with error: %v", kubernetesNode.Name, err)
 		return err
 	}
 

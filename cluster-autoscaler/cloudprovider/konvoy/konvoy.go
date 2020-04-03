@@ -14,6 +14,7 @@ import (
 	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	konvoyconstants "github.com/mesosphere/konvoy/clientapis/pkg/constants"
 
 	"k8s.io/klog"
 )
@@ -172,7 +173,7 @@ func BuildKonvoy(opts config.AutoscalingOptions, do cloudprovider.NodeGroupDisco
 
 	externalClient := kubeclient.NewForConfigOrDie(externalConfig)
 	konvoyManager := &KonvoyManager{
-		provisioner:      provisionerAWS,
+		provisioner:      konvoyconstants.ProvisionerAWS,
 		dynamicClient:    dynamicClient,
 		clusterName:      opts.ClusterName,
 		clusterNamespace: konvoyOpts.Namespace,
