@@ -971,11 +971,19 @@ func (sd *ScaleDown) scheduleDeleteEmptyNodes(emptyNodes []*apiv1.Node, client k
 			return deletedNodes, errors.NewAutoscalerError(
 				errors.CloudProviderError, "failed to find node group for %s", node.Name)
 		}
-		taintErr := deletetaint.MarkToBeDeleted(node, client)
-		if taintErr != nil {
-			recorder.Eventf(node, apiv1.EventTypeWarning, "ScaleDownFailed", "failed to mark the node as toBeDeleted/unschedulable: %v", taintErr)
-			return deletedNodes, errors.ToAutoscalerError(errors.ApiCallError, taintErr)
-		}
+
+		// TODO(d2iq): This should be reverted once Konvoy autosclaer plugin supports
+		// deleting specific nodes. Right now the Konvoy plugin cannot target delete
+		// specific node and thus we won't mark node to be deleted with unschedulable
+		// taint. If Konvoy plugin would delete other node this could cause issues
+		// and no pods would get scheduled.
+		// taintErr := deletetaint.MarkToBeDeleted(node, client)
+		// if taintErr != nil {
+		// 	recorder.Eventf(node, apiv1.EventTypeWarning, "ScaleDownFailed", "failed to mark the node as toBeDeleted/unschedulable: %v", taintErr)
+		// 	return deletedNodes, errors.ToAutoscalerError(errors.ApiCallError, taintErr)
+		// }
+		klog.Infof("Skipping ToBeDeleted taint for %s", node.Name)
+
 		deletedNodes = append(deletedNodes, node)
 		go func(nodeToDelete *apiv1.Node, nodeGroupForDeletedNode cloudprovider.NodeGroup) {
 			sd.nodeDeletionTracker.StartDeletion(nodeGroupForDeletedNode.Id())
@@ -987,7 +995,8 @@ func (sd *ScaleDown) scheduleDeleteEmptyNodes(emptyNodes []*apiv1.Node, client k
 			// If we fail to delete the node we want to remove delete taint
 			defer func() {
 				if deleteErr != nil {
-					deletetaint.CleanToBeDeleted(nodeToDelete, client)
+					// TODO(d2iq): Revert this once Konvoy plugin can delete specific node.
+					// deletetaint.CleanToBeDeleted(nodeToDelete, client)
 					recorder.Eventf(nodeToDelete, apiv1.EventTypeWarning, "ScaleDownFailed", "failed to delete empty node: %v", deleteErr)
 				} else {
 					sd.context.LogRecorder.Eventf(apiv1.EventTypeNormal, "ScaleDownEmpty", "Scale-down: empty node %s removed", nodeToDelete.Name)
@@ -1023,10 +1032,16 @@ func (sd *ScaleDown) deleteNode(node *apiv1.Node, pods []*apiv1.Pod,
 	deleteSuccessful := false
 	drainSuccessful := false
 
-	if err := deletetaint.MarkToBeDeleted(node, sd.context.ClientSet); err != nil {
-		sd.context.Recorder.Eventf(node, apiv1.EventTypeWarning, "ScaleDownFailed", "failed to mark the node as toBeDeleted/unschedulable: %v", err)
-		return status.NodeDeleteResult{ResultType: status.NodeDeleteErrorFailedToMarkToBeDeleted, Err: errors.ToAutoscalerError(errors.ApiCallError, err)}
-	}
+	// TODO(d2iq): This should be reverted once Konvoy autosclaer plugin supports
+	// deleting specific nodes. Right now the Konvoy plugin cannot target delete
+	// specific node and thus we won't mark node to be deleted with unschedulable
+	// taint. If Konvoy plugin would delete other node this could cause issues
+	// and no pods would get scheduled.
+	// if err := deletetaint.MarkToBeDeleted(node, sd.context.ClientSet); err != nil {
+	// 	sd.context.Recorder.Eventf(node, apiv1.EventTypeWarning, "ScaleDownFailed", "failed to mark the node as toBeDeleted/unschedulable: %v", err)
+	// 	return status.NodeDeleteResult{ResultType: status.NodeDeleteErrorFailedToMarkToBeDeleted, Err: errors.ToAutoscalerError(errors.ApiCallError, err)}
+	// }
+	klog.Infof("Skipping ToBeDeleted taint for %s", node.Name)
 
 	sd.nodeDeletionTracker.StartDeletion(nodeGroup.Id())
 	defer sd.nodeDeletionTracker.EndDeletion(nodeGroup.Id())
@@ -1034,7 +1049,8 @@ func (sd *ScaleDown) deleteNode(node *apiv1.Node, pods []*apiv1.Pod,
 	// If we fail to evict all the pods from the node we want to remove delete taint
 	defer func() {
 		if !deleteSuccessful {
-			deletetaint.CleanToBeDeleted(node, sd.context.ClientSet)
+			// TODO(d2iq): Revert this once Konvoy plugin can delete specific node.
+			// deletetaint.CleanToBeDeleted(node, sd.context.ClientSet)
 			if !drainSuccessful {
 				sd.context.Recorder.Eventf(node, apiv1.EventTypeWarning, "ScaleDownFailed", "failed to drain the node, aborting ScaleDown")
 			} else {
@@ -1046,10 +1062,17 @@ func (sd *ScaleDown) deleteNode(node *apiv1.Node, pods []*apiv1.Pod,
 	sd.context.Recorder.Eventf(node, apiv1.EventTypeNormal, "ScaleDown", "marked the node as toBeDeleted/unschedulable")
 
 	// attempt drain
-	evictionResults, err := drainNode(node, pods, sd.context.ClientSet, sd.context.Recorder, sd.context.MaxGracefulTerminationSec, MaxPodEvictionTime, EvictionRetryTime, PodEvictionHeadroom)
-	if err != nil {
-		return status.NodeDeleteResult{ResultType: status.NodeDeleteErrorFailedToEvictPods, Err: err, PodEvictionResults: evictionResults}
-	}
+	// TODO(d2iq): This is commented out because Konvoy autoscaler plugin cannot
+	// target deletion of particular node while autoscaler expects particular node
+	// to be deleted. Since Konvoy plugin will delete "random" node we rather not
+	// evict pods from processed node.
+	// Once konvoy plugin supports deletion of specific nodes (when switched to
+	// cluster api) this code should be uncommented.
+
+	// evictionResults, err := drainNode(node, pods, sd.context.ClientSet, sd.context.Recorder, sd.context.MaxGracefulTerminationSec, MaxPodEvictionTime, EvictionRetryTime, PodEvictionHeadroom)
+	// if err != nil {
+	// 	return status.NodeDeleteResult{ResultType: status.NodeDeleteErrorFailedToEvictPods, Err: err, PodEvictionResults: evictionResults}
+	// }
 	drainSuccessful = true
 
 	if typedErr := waitForDelayDeletion(node, sd.context.ListerRegistry.AllNodeLister(), sd.context.AutoscalingOptions.NodeDeletionDelayTimeout); typedErr != nil {
