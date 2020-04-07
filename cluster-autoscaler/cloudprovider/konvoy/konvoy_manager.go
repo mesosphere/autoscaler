@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"sync"
-	"time"
 
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -228,13 +227,10 @@ func (k *KonvoyManager) RemoveNodeFromNodeGroup(nodeGroupName string, nodeName s
 		return err
 	}
 
-	kubernetesNode.Annotations[KonvoyNodeAnnotationKey] = time.Now().String()
-	klog.Infof("Adding annotation node with name: %v", kubernetesNode.Name)
-	_, err = k.kubeClient.CoreV1().Nodes().Update(kubernetesNode)
-	if err != nil {
-		klog.Errorf("unable to update the kubernetes node: %s with error: %v", kubernetesNode.Name, err)
-		return err
-	}
+	decreasedTargetSize := currentTargetSize - 1
+	klog.Info(
+		"Removing node `%s` from node group `%s` by decreasing pool size to `%d`",
+		nodeName, nodeGroupName, decreasedTargetSize)
 
-	return k.setNodeGroupTargetSize(nodeGroupName, currentTargetSize-1)
+	return k.setNodeGroupTargetSize(nodeGroupName, decreasedTargetSize)
 }

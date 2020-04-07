@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	kommanderv1beta1 "github.com/mesosphere/kommander-cluster-lifecycle/clientapis/pkg/apis/kommander/v1beta1"
+	konvoyconstants "github.com/mesosphere/konvoy/clientapis/pkg/constants"
 	apiv1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -14,7 +15,6 @@ import (
 	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	konvoyconstants "github.com/mesosphere/konvoy/clientapis/pkg/constants"
 
 	"k8s.io/klog"
 )
@@ -28,10 +28,6 @@ const (
 
 	// KubernetesMasterNodeLabel marks nodes that runs master services.
 	KubernetesMasterNodeLabel = "node-role.kubernetes.io/master"
-
-	// KonvoyNodeAnnotationKey is annotation that is set on kubernetes nodes
-	// that needs to be delete.
-	KonvoyNodeAnnotationKey = "konvoy.d2iq.io/delete-machine"
 
 	// Default `namespace` for autoscaled cluster.
 	DefaultKonvoyClusterNamespace = "konvoy"
@@ -164,7 +160,7 @@ func BuildKonvoy(opts config.AutoscalingOptions, do cloudprovider.NodeGroupDisco
 
 	scheme := runtime.NewScheme()
 	if err := kommanderv1beta1.AddToScheme(scheme); err != nil {
-		klog.Errorf("Unable to add konvoy management cluster to scheme: (%v)", err)
+		klog.Fatalf("Unable to add konvoy management cluster to scheme: (%v)", err)
 	}
 
 	dynamicClient, err := client.New(externalConfig, client.Options{
@@ -190,8 +186,8 @@ func BuildKonvoy(opts config.AutoscalingOptions, do cloudprovider.NodeGroupDisco
 	return provider
 }
 
-func parseKonvoyAutodiscoveryOptions(do cloudprovider.NodeGroupDiscoveryOptions) (*KonvoyAutodisoveryOptions, error) {
-	opts := &KonvoyAutodisoveryOptions{}
+func parseKonvoyAutodiscoveryOptions(do cloudprovider.NodeGroupDiscoveryOptions) (*KonvoyAutodiscoveryOptions, error) {
+	opts := &KonvoyAutodiscoveryOptions{}
 
 	for _, spec := range do.NodeGroupAutoDiscoverySpecs {
 		tokens := strings.Split(spec, ":")
@@ -224,6 +220,6 @@ func parseKonvoyAutodiscoveryOptions(do cloudprovider.NodeGroupDiscoveryOptions)
 	return opts, nil
 }
 
-type KonvoyAutodisoveryOptions struct {
+type KonvoyAutodiscoveryOptions struct {
 	Namespace string
 }
