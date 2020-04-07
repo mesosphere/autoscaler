@@ -16,6 +16,7 @@ import (
 	kclv1beta1 "github.com/mesosphere/kommander-cluster-lifecycle/clientapis/pkg/apis/kommander/v1beta1"
 	konvoyclusterv1beta1 "github.com/mesosphere/kommander-cluster-lifecycle/clientapis/pkg/apis/kommander/v1beta1"
 	konvoyv1beta1 "github.com/mesosphere/konvoy/clientapis/pkg/apis/konvoy/v1beta1"
+	konvoyconstants "github.com/mesosphere/konvoy/clientapis/pkg/constants"
 )
 
 func TestKonvoyManagerGetNodeGroups(t *testing.T) {
@@ -92,10 +93,11 @@ func TestKonvoyManagerGetNodeGroups(t *testing.T) {
 		dynamicClient := fake.NewFakeClientWithScheme(scheme, test.konvoyCluster)
 
 		mgr := &KonvoyManager{
-			provisioner:   "aws",
+			provisioner:   konvoyconstants.ProvisionerAWS,
 			dynamicClient: dynamicClient,
 			clusterName:   test.clusterName,
 		}
+		mgr.forceRefresh()
 
 		nodeGroups := mgr.GetNodeGroups()
 		// set the konvoyManager to nil so we can easily compare the node groups
@@ -150,7 +152,7 @@ func TestKonvoyManagerGetNodeNamesForNodeGroup(t *testing.T) {
 					ProviderID: "test-provider-id",
 				},
 			},
-			provisioner: "aws",
+			provisioner: konvoyconstants.ProvisionerAWS,
 		},
 		{
 			description:   "should return empty list because node does not have required label",

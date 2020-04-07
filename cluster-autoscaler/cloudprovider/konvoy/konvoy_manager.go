@@ -13,35 +13,48 @@ import (
 	"k8s.io/klog"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	konvoyclusterv1beta1 "github.com/mesosphere/kommander-cluster-lifecycle/clientapis/pkg/apis/kommander/v1beta1"
+	kommanderv1beta1 "github.com/mesosphere/kommander-cluster-lifecycle/clientapis/pkg/apis/kommander/v1beta1"
+	konvoyconstants "github.com/mesosphere/konvoy/clientapis/pkg/constants"
 )
 
 const (
 	nodeGroupLabel = "autoscaling.k8s.io/nodegroup"
 	numRetries     = 3
+
+	unknownTargetSize = -1
 )
 
 type KonvoyManager struct {
-	provisioner            string
-	clusterName            string
-	kubeClient             kubeclient.Interface
-	createNodeQueue        chan string
-	nodeGroupQueueSize     map[string]int
-	nodeGroupQueueSizeLock sync.Mutex
-	dynamicClient          client.Client
+	provisioner      string
+	clusterName      string
+	clusterNamespace string
+	kubeClient       kubeclient.Interface
+	dynamicClient    client.Client
+
+	nodeGroupsMutex sync.RWMutex
+	nodeGroups      []*NodeGroup
 }
 
 // GetNodeGroups returns all node groups configured for this cloud provider.
 func (k *KonvoyManager) GetNodeGroups() []*NodeGroup {
-	konvoyCluster := &konvoyclusterv1beta1.KonvoyCluster{}
-	konvoyCluster.Name = k.clusterName
+	k.nodeGroupsMutex.RLock()
+	defer k.nodeGroupsMutex.RUnlock()
+	return k.nodeGroups
+}
+
+func (k *KonvoyManager) forceRefresh() error {
+	k.nodeGroupsMutex.Lock()
+	defer k.nodeGroupsMutex.Unlock()
+
+	konvoyCluster := &kommanderv1beta1.KonvoyCluster{}
 	clusterNamespacedName := types.NamespacedName{
-		Namespace: "kommander",
-		Name:      konvoyCluster.Name,
+		Namespace: k.clusterNamespace,
+		Name:      k.clusterName,
 	}
 	err := k.dynamicClient.Get(context.Background(), clusterNamespacedName, konvoyCluster)
 	if err != nil {
-		klog.Warningf("Error retrieving the konvoy cluster: %v -- %v", konvoyCluster.Name, err)
+		klog.Errorf("Error retrieving the konvoy cluster: %v -- %v", konvoyCluster.Name, err)
+		return err
 	}
 
 	var ngs []*NodeGroup
@@ -56,10 +69,12 @@ func (k *KonvoyManager) GetNodeGroups() []*NodeGroup {
 			})
 		}
 	}
-	return ngs
+
+	k.nodeGroups = ngs
+	return nil
 }
 
-// GetNodeGroupSize returns the current size for the node group as observed.
+// GetNodeNamesForNodeGroup returns a list of actual nodes in the cluster.
 func (k *KonvoyManager) GetNodeNamesForNodeGroup(nodeGroup string) ([]string, error) {
 	selector := labels.SelectorFromSet(labels.Set{nodeGroupLabel: nodeGroup})
 	options := metav1.ListOptions{
@@ -74,13 +89,19 @@ func (k *KonvoyManager) GetNodeNamesForNodeGroup(nodeGroup string) ([]string, er
 	klog.V(2).Infof("List of nodes: %v", nodes)
 	result := make([]string, 0, len(nodes.Items))
 	for _, node := range nodes.Items {
-		if k.provisioner == "aws" {
-			result = append(result, node.Spec.ProviderID)
-		} else {
-			result = append(result, node.ObjectMeta.Name)
-		}
+		result = append(result, kubernetesNodeName(&node, k.provisioner))
 	}
 	return result, nil
+}
+
+// kubernetesNodeName returns a node name that should be used based on the provider
+func kubernetesNodeName(node *apiv1.Node, provisioner string) string {
+	switch provisioner {
+	case konvoyconstants.ProvisionerAWS, konvoyconstants.ProvisionerAzure:
+		return node.Spec.ProviderID
+	default:
+		return node.ObjectMeta.Name
+	}
 }
 
 // GetNodeGroupSize returns the current size for the node group as observed.
@@ -97,81 +118,60 @@ func (k *KonvoyManager) GetNodeGroupSize(nodeGroup string) (int, error) {
 	return len(nodes.Items), nil
 }
 
-// GetNodeGroupTargetSize returns the size of the node group as a sum of current
-// observed size and number of upcoming nodes.
-func (k *KonvoyManager) GetNodeGroupTargetSize(nodeGroup string) (int, error) {
-	k.nodeGroupQueueSizeLock.Lock()
-	defer k.nodeGroupQueueSizeLock.Unlock()
-	realSize, err := k.GetNodeGroupSize(nodeGroup)
-	if err != nil {
-		return realSize, err
+// GetNodeGroupTargetSize returns the target size of the node group.
+func (k *KonvoyManager) GetNodeGroupTargetSize(nodeGroupName string) (int, error) {
+	konvoyCluster := &kommanderv1beta1.KonvoyCluster{}
+	konvoyCluster.Name = k.clusterName
+	clusterNamespacedName := types.NamespacedName{
+		Namespace: k.clusterNamespace,
+		Name:      konvoyCluster.Name,
 	}
-	return realSize + k.nodeGroupQueueSize[nodeGroup], nil
+	if err := k.dynamicClient.Get(context.Background(), clusterNamespacedName, konvoyCluster); err != nil {
+		return unknownTargetSize, err
+	}
+
+	for _, nodePool := range konvoyCluster.Spec.ProvisionerConfiguration.NodePools {
+		if nodePool.Name == nodeGroupName {
+			return int(nodePool.Count), nil
+		}
+	}
+
+	return unknownTargetSize, fmt.Errorf("node group %s not found", nodeGroupName)
 }
 
-// SetNodeGroupSize changes the size of node group by adding or removing nodes.
-func (k *KonvoyManager) SetNodeGroupSize(nodeGroup string, size int) error {
-	currSize, err := k.GetNodeGroupTargetSize(nodeGroup)
-	if err != nil {
-		return err
-	}
-	switch delta := size - currSize; {
-	case delta < 0:
-		absDelta := -delta
-		nodes, err := k.GetNodeNamesForNodeGroup(nodeGroup)
-		if err != nil {
-			return err
-		}
-		if len(nodes) < absDelta {
-			return fmt.Errorf("can't remove %d nodes from %s nodegroup, not enough nodes: %d", absDelta, nodeGroup, len(nodes))
-		}
-		for i, node := range nodes {
-			if i == absDelta {
-				return nil
-			}
-			if err := k.RemoveNodeFromNodeGroup(nodeGroup, node); err != nil {
-				return err
-			}
-		}
-	case delta > 0:
-		k.nodeGroupQueueSizeLock.Lock()
-		defer k.nodeGroupQueueSizeLock.Unlock()
-		for i := 0; i < delta; i++ {
-			k.nodeGroupQueueSize[nodeGroup]++
-			if err := k.addNodeToNodeGroup(nodeGroup); err != nil {
-				k.nodeGroupQueueSize[nodeGroup]--
-				return err
-			}
-		}
-	}
-
-	return nil
-}
-
-func (k *KonvoyManager) addNodeToNodeGroup(nodeGroup string) error {
+func (k *KonvoyManager) setNodeGroupTargetSize(nodeGroupName string, newSize int) error {
 	var err error
+	klog.Infof("Setting the new target size '%d' to group '%s'", newSize, nodeGroupName)
 	for i := 0; i < numRetries; i++ {
-		konvoyCluster := &konvoyclusterv1beta1.KonvoyCluster{}
+		konvoyCluster := &kommanderv1beta1.KonvoyCluster{}
 		konvoyCluster.Name = k.clusterName
 		clusterNamespacedName := types.NamespacedName{
-			Namespace: "kommander",
+			Namespace: k.clusterNamespace,
 			Name:      konvoyCluster.Name,
 		}
 		err = k.dynamicClient.Get(context.Background(), clusterNamespacedName, konvoyCluster)
 		if err != nil {
 			klog.Warningf("Error retrieving the konvoy cluster: %v -- %v", konvoyCluster.Name, err)
 		}
+
+		targetPoolIndex := -1
 		for i, pool := range konvoyCluster.Spec.ProvisionerConfiguration.NodePools {
-			if pool.Name == nodeGroup {
-				konvoyCluster.Spec.ProvisionerConfiguration.NodePools[i].Count++
+			if pool.Name == nodeGroupName {
+				targetPoolIndex = i
 			}
 		}
 
+		if targetPoolIndex < 0 {
+			return fmt.Errorf("node group %s does not exists", nodeGroupName)
+		}
+
+		konvoyCluster.Spec.ProvisionerConfiguration.NodePools[targetPoolIndex].Count = int32(newSize)
+
 		if err = k.dynamicClient.Update(context.Background(), konvoyCluster); err != nil {
-			klog.Warningf("Error updating the konvoy cluster: %v -- %v", konvoyCluster.Name, err)
-			err = fmt.Errorf("Failed to add node to group %s: %v", nodeGroup, err)
+			klog.Errorf("Error updating the konvoy cluster %s: %v", konvoyCluster.Name, err)
+			err = fmt.Errorf("failed to set target size %d for node group %s: %v", newSize, nodeGroupName, err)
 		} else {
-			klog.Infof("Konvoy cluster updated successfully: %v", konvoyCluster.Name)
+			klog.Infof("Konvoy %s cluster target size set to %d for node group %s", konvoyCluster.Name, newSize, nodeGroupName)
 			return nil
 		}
 	}
@@ -179,84 +179,58 @@ func (k *KonvoyManager) addNodeToNodeGroup(nodeGroup string) error {
 	return err
 }
 
-// GetNodeGroupForNode returns the name of the node group to which the node
+// GetNodeGroupNameForNode returns the name of the node group to which the node
 // belongs.
-func (k *KonvoyManager) GetNodeGroupForNode(node string) (string, error) {
-	konvoyNode, err := k.getNodeByName(node)
-	if konvoyNode == nil || err != nil {
-		return "", fmt.Errorf("node %s does not exist", node)
+func (k *KonvoyManager) GetNodeGroupNameForNode(nodeName string) (string, error) {
+	kubernetesNode, err := k.getNodeByName(nodeName)
+	if kubernetesNode == nil || err != nil {
+		return "", fmt.Errorf("node %s does not exist", nodeName)
 	}
-	nodeGroup, ok := konvoyNode.Labels[nodeGroupLabel]
+	nodeGroupName, ok := kubernetesNode.Labels[nodeGroupLabel]
 	if ok {
-		return nodeGroup, nil
+		return nodeGroupName, nil
 	}
-	return "", fmt.Errorf("can't find nodegroup for node %s due to missing label %s", node, nodeGroupLabel)
+	return "", fmt.Errorf("can't find nodegroup for node %s due to missing label %s", nodeName, nodeGroupLabel)
 }
 
 func (k *KonvoyManager) getNodeByName(name string) (*apiv1.Node, error) {
-	nodes, err := k.kubeClient.CoreV1().Nodes().List(metav1.ListOptions{})
+	result, err := k.kubeClient.CoreV1().Nodes().List(metav1.ListOptions{})
 	if err != nil {
 		klog.Warningf("Error listing nodes")
 		return nil, err
 	}
 	//klog.V(2).Infof("List of nodes: %v", nodes)
-	for _, node := range nodes.Items {
-		if k.provisioner == "aws" {
-			if node.Spec.ProviderID == name {
-				klog.V(2).Infof("Get node by name: %v", name)
-				return &node, nil
-			}
-		} else {
-			if node.Name == name {
-				klog.V(2).Infof("Get node by name: %v", name)
-				return &node, nil
-			}
+	for _, node := range result.Items {
+		nodeName := kubernetesNodeName(&node, k.provisioner)
+		if nodeName == name {
+			klog.V(2).Infof("Get node by name: %v", name)
+			return &node, nil
 		}
 	}
 	return nil, nil
 }
 
-func (k *KonvoyManager) RemoveNodeFromNodeGroup(nodeGroup string, node string) error {
-	konvoyNode, err := k.getNodeByName(node)
-	if konvoyNode == nil || err != nil {
-		klog.Warningf("Can't delete node %s from nodegroup %s. Node does not exist.", node, nodeGroup)
-		return nil
+// RemoveNodeFromNodeGroup marks given node for deletion and decreases target node group size
+// by one.
+func (k *KonvoyManager) RemoveNodeFromNodeGroup(nodeGroupName string, nodeName string) error {
+	kubernetesNode, err := k.getNodeByName(nodeName)
+	if kubernetesNode == nil || err != nil {
+		klog.Warningf("Can't delete node %s from nodegroup %s. Node does not exist.", nodeName, nodeGroupName)
+		return err
 	}
-	if konvoyNode.ObjectMeta.Labels[nodeGroupLabel] != nodeGroup {
-		return fmt.Errorf("can't delete node %s from nodegroup %s. Node is not in nodegroup", node, nodeGroup)
+	if kubernetesNode.ObjectMeta.Labels[nodeGroupLabel] != nodeGroupName {
+		return fmt.Errorf("can't delete node %s from nodegroup %s. Node is not in nodegroup", nodeName, nodeGroupName)
 	}
 
-	/*
-	  TODO: we could mark a node for deletion or delete it using Konvoy library
-	  if err := k.kubeClient.CoreV1().Nodes().Delete(node.Name, &metav1.DeleteOptions{}); err != nil {
-	    klog.Errorf("failed to delete node %s from Konvoy cluster, err: %v", node.Name, err)
-	  }
-	*/
-	for i := 0; i < numRetries; i++ {
-		// Decrease the size of the pool in Konvoy
-		konvoyCluster := &konvoyclusterv1beta1.KonvoyCluster{}
-		konvoyCluster.Name = k.clusterName
-		clusterNamespacedName := types.NamespacedName{
-			Namespace: "kommander",
-			Name:      konvoyCluster.Name,
-		}
-		err = k.dynamicClient.Get(context.Background(), clusterNamespacedName, konvoyCluster)
-		if err != nil {
-			klog.Warningf("Error retrieving the konvoy cluster: %v -- %v", konvoyCluster.Name, err)
-		}
-		for i, pool := range konvoyCluster.Spec.ProvisionerConfiguration.NodePools {
-			if pool.Name == nodeGroup {
-				konvoyCluster.Spec.ProvisionerConfiguration.NodePools[i].Count--
-			}
-		}
-
-		if err = k.dynamicClient.Update(context.Background(), konvoyCluster); err != nil {
-			klog.Warningf("Error updating the konvoy cluster: %v -- %v", konvoyCluster.Name, err)
-			err = fmt.Errorf("Failed to delete node %s: %v", node, err)
-		} else {
-			klog.Infof("Konvoy cluster updated successfully: %v", konvoyCluster.Name)
-			return nil
-		}
+	currentTargetSize, err := k.GetNodeGroupTargetSize(nodeGroupName)
+	if err != nil {
+		return err
 	}
-	return err
+
+	decreasedTargetSize := currentTargetSize - 1
+	klog.Info(
+		"Removing node `%s` from node group `%s` by decreasing pool size to `%d`",
+		nodeName, nodeGroupName, decreasedTargetSize)
+
+	return k.setNodeGroupTargetSize(nodeGroupName, decreasedTargetSize)
 }
