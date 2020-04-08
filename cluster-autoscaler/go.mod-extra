@@ -17,7 +17,7 @@ replace (
   golang.org/x/net => github.com/golang/net v0.0.0-20191105084925-a882066a44e0
   github.com/Azure/azure-sdk-for-go => github.com/Azure/azure-sdk-for-go v34.0.0+incompatible
   github.com/Azure/go-autorest => github.com/Azure/go-autorest v13.0.0
-  github.com/mesosphere/kommander-cluster-lifecycle/clientapis => github.com/mesosphere/kommander-cluster-lifecycle/clientapis v0.0.0-20200310195319-9ade9d29b183
+  github.com/mesosphere/kommander-cluster-lifecycle/clientapis => github.com/mesosphere/kommander-cluster-lifecycle/clientapis v0.0.0-20200323150606-ab6f57ecf9a3
   github.com/mesosphere/konvoy => github.com/mesosphere/konvoy v1.4.1-0.20200310090954-4cd2e24282f1
 	github.com/mesosphere/konvoy/clientapis => github.com/mesosphere/konvoy/clientapis v0.0.0-20200310090954-4cd2e24282f1
 )

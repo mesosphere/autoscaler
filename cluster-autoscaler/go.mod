@@ -17,7 +17,7 @@ require (
 	github.com/google/go-querystring v1.0.0
 	github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
 	github.com/json-iterator/go v1.1.9
-	github.com/mesosphere/kommander-cluster-lifecycle/clientapis v0.0.0-20200310195319-9ade9d29b183
+	github.com/mesosphere/kommander-cluster-lifecycle/clientapis v0.0.0-20200323150606-ab6f57ecf9a3
 	github.com/mesosphere/konvoy/clientapis v0.0.0
 	github.com/prometheus/client_golang v1.1.0
 	github.com/satori/go.uuid v1.2.0
@@ -28,8 +28,8 @@ require (
 	google.golang.org/api v0.9.0
 	gopkg.in/gcfg.v1 v1.2.0
 	gopkg.in/yaml.v2 v2.2.8
-	k8s.io/api v0.17.3
-	k8s.io/apimachinery v0.17.3
+	k8s.io/api v0.17.4
+	k8s.io/apimachinery v0.17.4
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
 	k8s.io/cloud-provider v0.16.4
 	k8s.io/component-base v0.17.3
@@ -38,7 +38,7 @@ require (
 	k8s.io/legacy-cloud-providers v0.0.0
 	k8s.io/metrics v0.16.4
 	k8s.io/utils v0.0.0-20200229041039-0a110f9eb7ab
-	sigs.k8s.io/controller-runtime v0.5.1-0.20200307095134-d0de78d9f1c1
+	sigs.k8s.io/controller-runtime v0.5.1
 )
 
 replace (
@@ -342,7 +342,7 @@ replace github.com/mesosphere/konvoy/clientapis => github.com/mesosphere/konvoy/
 
 replace github.com/google/go-querystring => github.com/google/go-querystring v1.0.0
 
-replace github.com/mesosphere/kommander-cluster-lifecycle/clientapis => github.com/mesosphere/kommander-cluster-lifecycle/clientapis v0.0.0-20200310195319-9ade9d29b183
+replace github.com/mesosphere/kommander-cluster-lifecycle/clientapis => github.com/mesosphere/kommander-cluster-lifecycle/clientapis v0.0.0-20200323150606-ab6f57ecf9a3
 
 replace k8s.io/helm => k8s.io/helm v2.16.3+incompatible
 

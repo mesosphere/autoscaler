@@ -108,6 +108,73 @@ func TestKonvoyManagerGetNodeGroups(t *testing.T) {
 	}
 }
 
+func TestKonvoyManagerSetTargetSizeIgnored(t *testing.T) {
+
+	var tests = []struct {
+		description   string
+		clusterName   string
+		konvoyCluster *kclv1beta1.KonvoyCluster
+		nodeGroups    []*NodeGroup
+	}{
+		{
+			description: "should return nil because cluster is paused",
+			clusterName: "test-cluster",
+			nodeGroups: []*NodeGroup{
+				{
+					Name:    "test-autoscaling-pool",
+					minSize: 1,
+					maxSize: 10,
+				},
+			},
+			konvoyCluster: &kclv1beta1.KonvoyCluster{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "test-cluster",
+					Namespace: "kommander",
+				},
+				Spec: kclv1beta1.KonvoyClusterSpec{
+					ProvisioningPaused: true,
+					ProvisionerConfiguration: konvoyv1beta1.ClusterProvisionerSpec{
+						NodePools: []konvoyv1beta1.MachinePool{
+							{
+								Name: "test-autoscaling-pool",
+								AutoscalingOptions: &konvoyv1beta1.AutoscalingOptions{
+									MinSize: utilpointer.Int32Ptr(1),
+									MaxSize: utilpointer.Int32Ptr(10),
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	scheme := runtime.NewScheme()
+	err := konvoyclusterv1beta1.AddToScheme(scheme)
+	assert.NoError(t, err)
+
+	for _, test := range tests {
+		dynamicClient := fake.NewFakeClientWithScheme(scheme, test.konvoyCluster)
+
+		mgr := &KonvoyManager{
+			provisioner:   konvoyconstants.ProvisionerAWS,
+			dynamicClient: dynamicClient,
+			clusterName:   test.clusterName,
+		}
+		mgr.forceRefresh()
+
+		nodeGroups := mgr.GetNodeGroups()
+		// set the konvoyManager to nil so we can easily compare the node groups
+		for i := range nodeGroups {
+			nodeGroups[i].konvoyManager = nil
+		}
+		assert.Equal(t, test.nodeGroups, nodeGroups, test.description)
+
+		err = mgr.setNodeGroupTargetSize("test-autoscaling-pool", 5)
+		assert.Error(t, err)
+	}
+}
+
 func TestKonvoyManagerGetNodeNamesForNodeGroup(t *testing.T) {
 
 	var tests = []struct {
