@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	kommanderv1beta1 "github.com/mesosphere/kommander-cluster-lifecycle/clientapis/pkg/apis/kommander/v1beta1"
-	konvoyconstants "github.com/mesosphere/konvoy/clientapis/pkg/constants"
 	apiv1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -100,7 +99,7 @@ func (konvoy *KonvoyCloudProvider) NodeGroupForNode(node *apiv1.Node) (cloudprov
 		return nil, nil
 	}
 
-	nodeName := kubernetesNodeName(node, konvoy.konvoyManager.provisioner)
+	nodeName := kubernetesNodeName(node)
 	nodeGroupName, err := konvoy.konvoyManager.GetNodeGroupNameForNode(nodeName)
 	if err != nil {
 		return nil, err
@@ -169,7 +168,6 @@ func BuildKonvoy(opts config.AutoscalingOptions, do cloudprovider.NodeGroupDisco
 
 	externalClient := kubeclient.NewForConfigOrDie(externalConfig)
 	konvoyManager := &KonvoyManager{
-		provisioner:      konvoyconstants.ProvisionerAWS,
 		dynamicClient:    dynamicClient,
 		clusterName:      opts.ClusterName,
 		clusterNamespace: konvoyOpts.Namespace,

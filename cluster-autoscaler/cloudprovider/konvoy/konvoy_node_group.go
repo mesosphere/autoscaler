@@ -61,7 +61,7 @@ func (nodeGroup *NodeGroup) DeleteNodes(nodes []*apiv1.Node) error {
 		return fmt.Errorf("min size reached, nodes will not be deleted")
 	}
 	for _, node := range nodes {
-		nodeName := kubernetesNodeName(node, nodeGroup.konvoyManager.provisioner)
+		nodeName := kubernetesNodeName(node)
 		if err := nodeGroup.konvoyManager.RemoveNodeFromNodeGroup(nodeGroup.Name, nodeName); err != nil {
 			return err
 		}
