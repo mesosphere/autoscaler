@@ -14,7 +14,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	kommanderv1beta1 "github.com/mesosphere/kommander-cluster-lifecycle/clientapis/pkg/apis/kommander/v1beta1"
-	konvoyconstants "github.com/mesosphere/konvoy/clientapis/pkg/constants"
 )
 
 const (
@@ -25,7 +24,6 @@ const (
 )
 
 type KonvoyManager struct {
-	provisioner      string
 	clusterName      string
 	clusterNamespace string
 	kubeClient       kubeclient.Interface
@@ -89,19 +87,18 @@ func (k *KonvoyManager) GetNodeNamesForNodeGroup(nodeGroup string) ([]string, er
 	klog.V(2).Infof("List of nodes: %v", nodes)
 	result := make([]string, 0, len(nodes.Items))
 	for _, node := range nodes.Items {
-		result = append(result, kubernetesNodeName(&node, k.provisioner))
+		result = append(result, kubernetesNodeName(&node))
 	}
 	return result, nil
 }
 
 // kubernetesNodeName returns a node name that should be used based on the provider
-func kubernetesNodeName(node *apiv1.Node, provisioner string) string {
-	switch provisioner {
-	case konvoyconstants.ProvisionerAWS, konvoyconstants.ProvisionerAzure:
-		return node.Spec.ProviderID
-	default:
+func kubernetesNodeName(node *apiv1.Node) string {
+	if len(node.Spec.ProviderID) == 0 {
+		klog.Warningf("Node has no ProviderID %s", node.ObjectMeta.Name)
 		return node.ObjectMeta.Name
 	}
+	return node.Spec.ProviderID
 }
 
 // GetNodeGroupSize returns the current size for the node group as observed.
@@ -152,6 +149,13 @@ func (k *KonvoyManager) setNodeGroupTargetSize(nodeGroupName string, newSize int
 		err = k.dynamicClient.Get(context.Background(), clusterNamespacedName, konvoyCluster)
 		if err != nil {
 			klog.Warningf("Error retrieving the konvoy cluster: %v -- %v", konvoyCluster.Name, err)
+			return err
+		}
+
+		// When Konvoy cluster is paused or in a provisioning phase. Let's skip any change for now
+		if konvoyCluster.Spec.ProvisioningPaused || konvoyCluster.Status.Phase == kommanderv1beta1.KonvoyClusterPhaseProvisioning {
+			klog.Errorf("Konvoy cluster is paused or in provisioning phase, retrying...")
+			return fmt.Errorf("Konvoy cluster is paused or in provisioning phase, retrying...")
 		}
 
 		targetPoolIndex := -1
@@ -201,7 +205,7 @@ func (k *KonvoyManager) getNodeByName(name string) (*apiv1.Node, error) {
 	}
 	//klog.V(2).Infof("List of nodes: %v", nodes)
 	for _, node := range result.Items {
-		nodeName := kubernetesNodeName(&node, k.provisioner)
+		nodeName := kubernetesNodeName(&node)
 		if nodeName == name {
 			klog.V(2).Infof("Get node by name: %v", name)
 			return &node, nil
@@ -228,7 +232,7 @@ func (k *KonvoyManager) RemoveNodeFromNodeGroup(nodeGroupName string, nodeName s
 	}
 
 	decreasedTargetSize := currentTargetSize - 1
-	klog.Info(
+	klog.Infof(
 		"Removing node `%s` from node group `%s` by decreasing pool size to `%d`",
 		nodeName, nodeGroupName, decreasedTargetSize)
 
