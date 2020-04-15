@@ -3,7 +3,7 @@ all: build
 TAG?=dev
 FLAGS=
 LDFLAGS?=-s
-ENVVAR=CGO_ENABLED=0
+ENVVAR ?= CGO_ENABLED=0
 GOOS?=linux
 REGISTRY?=staging-k8s.gcr.io
 ifdef BUILD_TAGS
@@ -20,6 +20,8 @@ ifdef LDFLAGS
 else
   LDFLAGS_FLAG=
 endif
+
+include d2iq.mk
 
 build: clean deps
 	$(ENVVAR) GOOS=$(GOOS) go build ${LDFLAGS_FLAG} ${TAGS_FLAG} ./...
@@ -73,4 +75,3 @@ test-in-docker: clean docker-builder
 	docker run -v `pwd`:/gopath/src/k8s.io/autoscaler/cluster-autoscaler/ autoscaling-builder:latest bash -c 'cd /gopath/src/k8s.io/autoscaler/cluster-autoscaler && go test -race ./... ${TAGS_FLAG}'
 
 .PHONY: all deps build test-unit clean format execute-release dev-release docker-builder build-in-docker release generate
-

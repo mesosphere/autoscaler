@@ -625,13 +625,20 @@ func TestDeleteNode(t *testing.T) {
 			assert.Equal(t, nothingReturned, getStringFromChanImmediately(deletedNodes))
 			assert.Equal(t, scenario.expectedResultType, result.ResultType)
 
-			taintedUpdate := fmt.Sprintf("%s-%s", n1.Name, []string{deletetaint.ToBeDeletedTaint})
+			// TODO(d2iq): This is commented out because Konvoy autoscaler plugin cannot
+			// target deletion of particular node while autoscaler expects particular node
+			// to be deleted. Since Konvoy plugin will delete "random" node we rather not
+			// evict pods from processed node.
+			// Once konvoy plugin supports deletion of specific nodes (when switched to
+			// cluster api) this code should be uncommented.
+			/* taintedUpdate := fmt.Sprintf("%s-%s", n1.Name, []string{deletetaint.ToBeDeletedTaint})
 			assert.Equal(t, taintedUpdate, getStringFromChan(updatedNodes))
 			if !scenario.expectedDeletion {
 				untaintedUpdate := fmt.Sprintf("%s-%s", n1.Name, []string{})
 				assert.Equal(t, untaintedUpdate, getStringFromChanImmediately(updatedNodes))
 			}
 			assert.Equal(t, nothingReturned, getStringFromChanImmediately(updatedNodes))
+			*/
 		})
 	}
 }
@@ -953,7 +960,15 @@ func TestScaleDown(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, status.ScaleDownNodeDeleteStarted, scaleDownStatus.Result)
 	assert.Equal(t, n1.Name, getStringFromChan(deletedNodes))
-	assert.Equal(t, n1.Name, getStringFromChan(updatedNodes))
+
+	// TODO(d2iq): This is commented out because Konvoy autoscaler plugin cannot
+	// target deletion of particular node while autoscaler expects particular node
+	// to be deleted. Since Konvoy plugin will delete "random" node we rather not
+	// evict pods from processed node.
+	// Once konvoy plugin supports deletion of specific nodes (when switched to
+	// cluster api) this code should be uncommented.
+	//
+	// assert.Equal(t, n1.Name, getStringFromChan(updatedNodes))
 }
 
 func waitForDeleteToFinish(t *testing.T, sd *ScaleDown) {
