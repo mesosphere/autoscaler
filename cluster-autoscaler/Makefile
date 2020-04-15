@@ -3,7 +3,7 @@ all: build
 TAG?=dev
 FLAGS=
 LDFLAGS?=-s
-ENVVAR=CGO_ENABLED=0
+ENVVAR ?= CGO_ENABLED=0
 GOOS?=linux
 REGISTRY?=staging-k8s.gcr.io
 ifdef BUILD_TAGS
@@ -21,11 +21,7 @@ else
   LDFLAGS_FLAG=
 endif
 
-# D2iQ Release build to push a mesosphere image for the
-KUBERNETES_VERSION?=1.16
-D2IQ_TAG_VERSION?=v$(KUBERNETES_VERSION)-0.1.0
-d2iq-docker-release:
-	TAG=$(D2IQ_TAG_VERSION) GOOS=linux REGISTRY=mesosphere PROVIDER= $(MAKE) build build-binary execute-release
+include d2iq.mk
 
 build: clean deps
 	$(ENVVAR) GOOS=$(GOOS) go build ${LDFLAGS_FLAG} ${TAGS_FLAG} ./...

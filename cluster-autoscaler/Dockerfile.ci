@@ -1,0 +1,18 @@
+FROM golang:1.13.10
+
+ENV HOME=/tmp
+
+ENV GO111MODULE on
+ENV GOPRIVATE github.com/mesosphere
+
+RUN apt-get update && apt-get install -y \
+    libseccomp-dev -qq \
+    locales \
+    unzip \
+    dnsutils \
+    && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p $GOPATH/src/k8s.io/autoscaler/cluster-autoscaler
+WORKDIR $GOPATH/src/k8s.io/autoscaler/cluster-autoscaler
