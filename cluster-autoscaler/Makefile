@@ -21,6 +21,12 @@ else
   LDFLAGS_FLAG=
 endif
 
+# D2iQ Release build to push a mesosphere image for the
+KUBERNETES_VERSION?=1.16
+D2IQ_TAG_VERSION?=v$(KUBERNETES_VERSION)-0.1.0
+d2iq-docker-release:
+	TAG=$(D2IQ_TAG_VERSION) GOOS=linux REGISTRY=mesosphere PROVIDER= $(MAKE) build build-binary execute-release
+
 build: clean deps
 	$(ENVVAR) GOOS=$(GOOS) go build ${LDFLAGS_FLAG} ${TAGS_FLAG} ./...
 	$(ENVVAR) GOOS=$(GOOS) go build -o cluster-autoscaler ${LDFLAGS_FLAG} ${TAGS_FLAG}
@@ -73,4 +79,3 @@ test-in-docker: clean docker-builder
 	docker run -v `pwd`:/gopath/src/k8s.io/autoscaler/cluster-autoscaler/ autoscaling-builder:latest bash -c 'cd /gopath/src/k8s.io/autoscaler/cluster-autoscaler && go test -race ./... ${TAGS_FLAG}'
 
 .PHONY: all deps build test-unit clean format execute-release dev-release docker-builder build-in-docker release generate
-
