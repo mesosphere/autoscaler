@@ -16,6 +16,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"k8s.io/klog"
+
+	kube_util "k8s.io/autoscaler/cluster-autoscaler/utils/kubernetes"
 )
 
 const (
@@ -32,6 +34,8 @@ const (
 	DefaultKonvoyClusterNamespace = "konvoy"
 
 	autoDiscovererTypeKonvoy = "konvoy"
+
+	KonvoyManagerRecorderName = "KonvoyManager"
 )
 
 var (
@@ -167,11 +171,15 @@ func BuildKonvoy(opts config.AutoscalingOptions, do cloudprovider.NodeGroupDisco
 	})
 
 	externalClient := kubeclient.NewForConfigOrDie(externalConfig)
+
+	kubeEventRecorder := kube_util.CreateEventRecorderWithScheme(externalClient, scheme)
+
 	konvoyManager := &KonvoyManager{
 		dynamicClient:    dynamicClient,
 		clusterName:      opts.ClusterName,
 		clusterNamespace: konvoyOpts.Namespace,
 		kubeClient:       externalClient,
+		eventRecorder:    kubeEventRecorder,
 	}
 	if err := konvoyManager.forceRefresh(); err != nil {
 		klog.Fatalf("Failed to create Konovy Manager: %v", err)

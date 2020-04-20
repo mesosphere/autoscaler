@@ -16,6 +16,7 @@ import (
 	kclv1beta1 "github.com/mesosphere/kommander-cluster-lifecycle/clientapis/pkg/apis/kommander/v1beta1"
 	konvoyclusterv1beta1 "github.com/mesosphere/kommander-cluster-lifecycle/clientapis/pkg/apis/kommander/v1beta1"
 	konvoyv1beta1 "github.com/mesosphere/konvoy/clientapis/pkg/apis/konvoy/v1beta1"
+	kube_util "k8s.io/autoscaler/cluster-autoscaler/utils/kubernetes"
 )
 
 func TestKonvoyManagerGetNodeGroups(t *testing.T) {
@@ -91,9 +92,15 @@ func TestKonvoyManagerGetNodeGroups(t *testing.T) {
 	for _, test := range tests {
 		dynamicClient := fake.NewFakeClientWithScheme(scheme, test.konvoyCluster)
 
+		kubeClient := kubernetesfake.NewSimpleClientset()
+
+		kubeEventRecorder := kube_util.CreateEventRecorderWithScheme(kubeClient, scheme)
+
 		mgr := &KonvoyManager{
+			kubeClient:    kubeClient,
 			dynamicClient: dynamicClient,
 			clusterName:   test.clusterName,
+			eventRecorder: kubeEventRecorder,
 		}
 		mgr.forceRefresh()
 
@@ -154,9 +161,14 @@ func TestKonvoyManagerSetTargetSizeIgnored(t *testing.T) {
 	for _, test := range tests {
 		dynamicClient := fake.NewFakeClientWithScheme(scheme, test.konvoyCluster)
 
+		kubeClient := kubernetesfake.NewSimpleClientset()
+
+		kubeEventRecorder := kube_util.CreateEventRecorderWithScheme(kubeClient, scheme)
+
 		mgr := &KonvoyManager{
 			dynamicClient: dynamicClient,
 			clusterName:   test.clusterName,
+			eventRecorder: kubeEventRecorder,
 		}
 		mgr.forceRefresh()
 
@@ -244,8 +256,11 @@ func TestKonvoyManagerGetNodeNamesForNodeGroup(t *testing.T) {
 
 		kubeClient := kubernetesfake.NewSimpleClientset(test.node)
 
+		kubeEventRecorder := kube_util.CreateEventRecorderWithScheme(kubeClient, scheme)
+
 		mgr := &KonvoyManager{
 			kubeClient:  kubeClient,
+			eventRecorder: kubeEventRecorder,
 		}
 
 		if test.err != nil {

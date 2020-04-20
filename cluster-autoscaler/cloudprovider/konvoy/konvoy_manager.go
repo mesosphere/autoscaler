@@ -10,6 +10,7 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
 	kubeclient "k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/record"
 	"k8s.io/klog"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -21,6 +22,11 @@ const (
 	numRetries     = 3
 
 	unknownTargetSize = -1
+
+	ReasonClusterScaleUpSuccess     = "ClusterScaleUpSuccess"
+	ReasonClusterScaleDownSuccess   = "ClusterScaleDownSuccess"
+	ReasonClusterScaleUpFailure     = "ClusterScaleUpFailure"
+	ReasonClusterScaleDownFailure   = "ClusterScaleDownFailure"
 )
 
 type KonvoyManager struct {
@@ -31,6 +37,7 @@ type KonvoyManager struct {
 
 	nodeGroupsMutex sync.RWMutex
 	nodeGroups      []*NodeGroup
+	eventRecorder   record.EventRecorder
 }
 
 // GetNodeGroups returns all node groups configured for this cloud provider.
@@ -169,13 +176,30 @@ func (k *KonvoyManager) setNodeGroupTargetSize(nodeGroupName string, newSize int
 			return fmt.Errorf("node group %s does not exists", nodeGroupName)
 		}
 
+		oldSize := konvoyCluster.Spec.ProvisionerConfiguration.NodePools[targetPoolIndex].Count
 		konvoyCluster.Spec.ProvisionerConfiguration.NodePools[targetPoolIndex].Count = int32(newSize)
 
 		if err = k.dynamicClient.Update(context.Background(), konvoyCluster); err != nil {
 			klog.Errorf("Error updating the konvoy cluster %s: %v", konvoyCluster.Name, err)
 			err = fmt.Errorf("failed to set target size %d for node group %s: %v", newSize, nodeGroupName, err)
+
+			if oldSize < int32(newSize) {
+				k.eventRecorder.Eventf(konvoyCluster, apiv1.EventTypeWarning, ReasonClusterScaleUpFailure,
+				"Failed to add %d machine to nodepool \"%s\" by autoscaler (provider: konvoy): %v", (int32(newSize) - oldSize), nodeGroupName, err)
+			} else {
+				k.eventRecorder.Eventf(konvoyCluster, apiv1.EventTypeWarning, ReasonClusterScaleDownFailure,
+				"Failed to remove %d machine from nodepool \"%s\" by autoscaler (provider: konvoy): %v", (oldSize - int32(newSize)), nodeGroupName, err)
+			}
 		} else {
 			klog.Infof("Konvoy %s cluster target size set to %d for node group %s", konvoyCluster.Name, newSize, nodeGroupName)
+
+			if oldSize < int32(newSize) {
+				k.eventRecorder.Eventf(konvoyCluster, apiv1.EventTypeNormal, ReasonClusterScaleUpSuccess,
+				"%d machine added to nodepool \"%s\" by autoscaler (provider: konvoy)",  (int32(newSize) - oldSize), nodeGroupName)
+			} else {
+				k.eventRecorder.Eventf(konvoyCluster, apiv1.EventTypeNormal, ReasonClusterScaleDownSuccess,
+				"%d machine removed from nodepool \"%s\" by autoscaler (provider: konvoy)", (oldSize - int32(newSize)), nodeGroupName)
+			}
 			return nil
 		}
 	}
