@@ -18,6 +18,7 @@ package kubernetes
 
 import (
 	clientv1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -46,6 +47,18 @@ func CreateEventRecorder(kubeClient clientset.Interface) kube_record.EventRecord
 		eventBroadcaster.StartRecordingToSink(&v1core.EventSinkImpl{Interface: v1core.New(kubeClient.CoreV1().RESTClient()).Events("")})
 	}
 	return eventBroadcaster.NewRecorder(scheme.Scheme, clientv1.EventSource{Component: "cluster-autoscaler"})
+}
+
+// TODO(d2iq): Added to be able to create events for konvoycluster objects
+// CreateEventRecorderWithScheme creates an event recorder to send custom events to Kubernetes to be recorded for targeted Kubernetes objects
+// using a defined scheme
+func CreateEventRecorderWithScheme(kubeClient clientset.Interface, scheme *runtime.Scheme) kube_record.EventRecorder {
+	eventBroadcaster := kube_record.NewBroadcasterWithCorrelatorOptions(getCorrelationOptions())
+	eventBroadcaster.StartLogging(klog.V(4).Infof)
+	if _, isfake := kubeClient.(*fake.Clientset); !isfake {
+		eventBroadcaster.StartRecordingToSink(&v1core.EventSinkImpl{Interface: v1core.New(kubeClient.CoreV1().RESTClient()).Events("")})
+	}
+	return eventBroadcaster.NewRecorder(scheme, clientv1.EventSource{Component: "cluster-autoscaler"})
 }
 
 func getCorrelationOptions() kube_record.CorrelatorOptions {
