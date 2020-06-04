@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	kommanderv1beta1 "github.com/mesosphere/kommander-cluster-lifecycle/clientapis/pkg/apis/kommander/v1beta1"
+	yakclv1beta1 "github.com/mesosphere/yakcl/clientapis/pkg/apis/kommander/v1beta1"
 	apiv1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -162,7 +162,7 @@ func BuildKonvoy(opts config.AutoscalingOptions, do cloudprovider.NodeGroupDisco
 	}
 
 	scheme := runtime.NewScheme()
-	if err := kommanderv1beta1.AddToScheme(scheme); err != nil {
+	if err := yakclv1beta1.AddToScheme(scheme); err != nil {
 		klog.Fatalf("Unable to add konvoy management cluster to scheme: (%v)", err)
 	}
 
