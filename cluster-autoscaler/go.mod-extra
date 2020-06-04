@@ -18,6 +18,8 @@ replace (
   github.com/Azure/azure-sdk-for-go => github.com/Azure/azure-sdk-for-go v34.0.0+incompatible
   github.com/Azure/go-autorest => github.com/Azure/go-autorest v13.0.0
   github.com/mesosphere/kommander-cluster-lifecycle/clientapis => github.com/mesosphere/kommander-cluster-lifecycle/clientapis v0.0.0-20200323150606-ab6f57ecf9a3
-  github.com/mesosphere/konvoy => github.com/mesosphere/konvoy v1.4.1-0.20200310090954-4cd2e24282f1
-	github.com/mesosphere/konvoy/clientapis => github.com/mesosphere/konvoy/clientapis v0.0.0-20200310090954-4cd2e24282f1
+  github.com/mesosphere/konvoy => github.com/mesosphere/konvoy v1.5.0-beta.4.0.20200530004623-273aa6517c5b
+  github.com/mesosphere/konvoy/clientapis => github.com/mesosphere/konvoy/clientapis v0.0.0-20200530004623-273aa6517c5b
+  github.com/mesosphere/konvoy/kuberneteslib => github.com/mesosphere/konvoy/kuberneteslib v0.0.0-20200530004623-273aa6517c5b
+  github.com/mesosphere/konvoy/printerlib => github.com/mesosphere/konvoy/printerlib v0.0.0-20200530004623-273aa6517c5b
 )
