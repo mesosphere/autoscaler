@@ -17,8 +17,8 @@ require (
 	github.com/google/go-querystring v1.0.0
 	github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
 	github.com/json-iterator/go v1.1.9
-	github.com/mesosphere/kommander-cluster-lifecycle/clientapis v0.0.0-20200415132633-8e195ef03be9
 	github.com/mesosphere/konvoy/clientapis v0.0.0
+	github.com/mesosphere/yakcl/clientapis v0.0.0-20200604074200-223f385ba632
 	github.com/prometheus/client_golang v1.1.0
 	github.com/satori/go.uuid v1.2.0
 	github.com/spf13/pflag v1.0.5
@@ -335,17 +335,17 @@ replace github.com/digitalocean/godo => github.com/digitalocean/godo v1.27.0
 
 replace github.com/rancher/go-rancher => github.com/rancher/go-rancher v0.1.0
 
-replace github.com/mesosphere/konvoy => github.com/mesosphere/konvoy v1.5.0-beta.4.0.20200530004623-273aa6517c5b
+replace github.com/mesosphere/konvoy => github.com/mesosphere/konvoy v1.5.0-beta.5.0.20200604044529-415ea20c7a71
 
-replace github.com/mesosphere/konvoy/clientapis => github.com/mesosphere/konvoy/clientapis v0.0.0-20200530004623-273aa6517c5b
+replace github.com/mesosphere/konvoy/clientapis => github.com/mesosphere/konvoy/clientapis v0.0.0-20200604044529-415ea20c7a71
 
-replace github.com/mesosphere/konvoy/kuberneteslib => github.com/mesosphere/konvoy/kuberneteslib v0.0.0-20200530004623-273aa6517c5b
+replace github.com/mesosphere/konvoy/kuberneteslib => github.com/mesosphere/konvoy/kuberneteslib v0.0.0-20200604044529-415ea20c7a71
 
-replace github.com/mesosphere/konvoy/printerlib => github.com/mesosphere/konvoy/printerlib v0.0.0-20200530004623-273aa6517c5b
+replace github.com/mesosphere/konvoy/printerlib => github.com/mesosphere/konvoy/printerlib v0.0.0-20200604044529-415ea20c7a71
 
 replace github.com/google/go-querystring => github.com/google/go-querystring v1.0.0
 
-replace github.com/mesosphere/kommander-cluster-lifecycle/clientapis => github.com/mesosphere/kommander-cluster-lifecycle/clientapis v0.0.0-20200323150606-ab6f57ecf9a3
+replace github.com/mesosphere/yakcl/clientapis => github.com/mesosphere/yakcl/clientapis v0.0.0-20200604074200-223f385ba632
 
 replace k8s.io/helm => k8s.io/helm v2.16.3+incompatible
 

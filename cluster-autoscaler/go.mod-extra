@@ -7,7 +7,7 @@ require (
   github.com/mesosphere/konvoy v1.4.1
   github.com/mesosphere/konvoy/clientapis v0.0.0
   github.com/google/go-querystring v1.0.0
-  github.com/mesosphere/kommander-cluster-lifecycle/clientapis v0.0.0-20200310195319-9ade9d29b183
+  github.com/mesosphere/yakcl/clientapis v0.0.0-20200604074200-223f385ba632
   github.com/aws/aws-sdk-go v1.23.12
   k8s.io/helm v0.0.0
 )
@@ -17,9 +17,9 @@ replace (
   golang.org/x/net => github.com/golang/net v0.0.0-20191105084925-a882066a44e0
   github.com/Azure/azure-sdk-for-go => github.com/Azure/azure-sdk-for-go v34.0.0+incompatible
   github.com/Azure/go-autorest => github.com/Azure/go-autorest v13.0.0
-  github.com/mesosphere/kommander-cluster-lifecycle/clientapis => github.com/mesosphere/kommander-cluster-lifecycle/clientapis v0.0.0-20200323150606-ab6f57ecf9a3
-  github.com/mesosphere/konvoy => github.com/mesosphere/konvoy v1.5.0-beta.4.0.20200530004623-273aa6517c5b
-  github.com/mesosphere/konvoy/clientapis => github.com/mesosphere/konvoy/clientapis v0.0.0-20200530004623-273aa6517c5b
-  github.com/mesosphere/konvoy/kuberneteslib => github.com/mesosphere/konvoy/kuberneteslib v0.0.0-20200530004623-273aa6517c5b
-  github.com/mesosphere/konvoy/printerlib => github.com/mesosphere/konvoy/printerlib v0.0.0-20200530004623-273aa6517c5b
+  github.com/mesosphere/yakcl/clientapis => github.com/mesosphere/yakcl/clientapis v0.0.0-20200604074200-223f385ba632
+  github.com/mesosphere/konvoy => github.com/mesosphere/konvoy v1.5.0-beta.5.0.20200604044529-415ea20c7a71
+  github.com/mesosphere/konvoy/clientapis => github.com/mesosphere/konvoy/clientapis v0.0.0-20200604044529-415ea20c7a71
+  github.com/mesosphere/konvoy/kuberneteslib => github.com/mesosphere/konvoy/kuberneteslib v0.0.0-20200604044529-415ea20c7a71
+  github.com/mesosphere/konvoy/printerlib => github.com/mesosphere/konvoy/printerlib v0.0.0-20200604044529-415ea20c7a71
 )
