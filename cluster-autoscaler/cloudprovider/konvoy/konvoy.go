@@ -105,7 +105,7 @@ func (konvoy *KonvoyCloudProvider) NodeGroupForNode(node *apiv1.Node) (cloudprov
 	}
 
 	if _, found := node.ObjectMeta.Labels[nodeGroupLabel]; !found {
-		// Ignore node if it does not have any autoscaling label
+		// Ignore node if it does not have the nodeGroup label key 'autoscaling.k8s.io/nodegroup'
 		return nil, nil
 	}
 

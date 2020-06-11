@@ -77,7 +77,7 @@ func TestKonvoyNodeGroupForNode(t *testing.T) {
 			},
 		},
 		{
-			description:   "should return nil node group due to an unknown node",
+			description:   "should return a nil nodeGroup due to a missing nodegroup label",
 			expectedError: false,
 			node: &corev1.Node{
 				ObjectMeta: metav1.ObjectMeta{
