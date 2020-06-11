@@ -100,6 +100,12 @@ func (konvoy *KonvoyCloudProvider) Pricing() (cloudprovider.PricingModel, errors
 // NodeGroupForNode returns the node group for the given node.
 func (konvoy *KonvoyCloudProvider) NodeGroupForNode(node *apiv1.Node) (cloudprovider.NodeGroup, error) {
 	if _, found := node.ObjectMeta.Labels[KubernetesMasterNodeLabel]; found {
+		// Ignore node if it belongs to the master pool
+		return nil, nil
+	}
+
+	if _, found := node.ObjectMeta.Labels[nodeGroupLabel]; !found {
+		// Ignore node if it does not have the nodeGroup label key 'autoscaling.k8s.io/nodegroup'
 		return nil, nil
 	}
 
