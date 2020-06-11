@@ -253,24 +253,32 @@ func getNodeInfosForGroups(nodes []*apiv1.Node, nodeInfoCache map[string]*schedu
 		return map[string]*schedulernodeinfo.NodeInfo{}, err
 	}
 
+	klog.V(5).Info("Get node infos for groups, starting...")
+
 	// processNode returns information whether the nodeTemplate was generated and if there was an error.
 	processNode := func(node *apiv1.Node) (bool, string, errors.AutoscalerError) {
 		nodeGroup, err := cloudProvider.NodeGroupForNode(node)
 		if err != nil {
+			klog.Errorf("Error getting the node group for the node '%s': %v", node.Name, err)
 			return false, "", errors.ToAutoscalerError(errors.CloudProviderError, err)
 		}
 		if nodeGroup == nil || reflect.ValueOf(nodeGroup).IsNil() {
+			klog.Warningf("Node without an associated node group: %s, ignoring it.", node.Name)
 			return false, "", nil
 		}
+		klog.V(5).Infof("Found a nodegroup: %v", nodeGroup)
+
 		id := nodeGroup.Id()
 		if _, found := result[id]; !found {
 			// Build nodeInfo.
 			nodeInfo, err := simulator.BuildNodeInfoForNode(node, podsForNodes)
 			if err != nil {
+				klog.Errorf("Error building the node info for node '%s': %v", node.Name, err)
 				return false, "", err
 			}
 			sanitizedNodeInfo, err := sanitizeNodeInfo(nodeInfo, id, ignoredTaints)
 			if err != nil {
+				klog.Errorf("Error sanitizing the node info for node '%s': %v", node.Name, err)
 				return false, "", err
 			}
 			result[id] = sanitizedNodeInfo
@@ -282,18 +290,23 @@ func getNodeInfosForGroups(nodes []*apiv1.Node, nodeInfoCache map[string]*schedu
 	for _, node := range nodes {
 		// Broken nodes might have some stuff missing. Skipping.
 		if !kube_util.IsNodeReadyAndSchedulable(node) {
+			klog.V(4).Info("Broken nodes might have some stuff missing. Skipping.")
 			continue
 		}
+		klog.V(5).Infof("Processing the node data: %s", node.Name)
 		added, id, typedErr := processNode(node)
 		if typedErr != nil {
+			klog.Errorf("Error processing the node: %v", typedErr)
 			return map[string]*schedulernodeinfo.NodeInfo{}, typedErr
 		}
 		if added && nodeInfoCache != nil {
 			if nodeInfoCopy, err := deepCopyNodeInfo(result[id]); err == nil {
+				klog.Errorf("Error while deep copying node info: %v", err)
 				nodeInfoCache[id] = nodeInfoCopy
 			}
 		}
 	}
+	klog.V(5).Infof("Available node groups: %v", cloudProvider.NodeGroups())
 	for _, nodeGroup := range cloudProvider.NodeGroups() {
 		id := nodeGroup.Id()
 		seenGroups[id] = true
