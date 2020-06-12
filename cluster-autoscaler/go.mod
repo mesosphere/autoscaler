@@ -18,7 +18,7 @@ require (
 	github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
 	github.com/json-iterator/go v1.1.9
 	github.com/mesosphere/konvoy/clientapis v0.0.0
-	github.com/mesosphere/yakcl/clientapis v0.0.0-20200604074200-223f385ba632
+	github.com/mesosphere/yakcl/clientapis v0.0.0-20200611201117-668ede115bcb
 	github.com/prometheus/client_golang v1.1.0
 	github.com/satori/go.uuid v1.2.0
 	github.com/spf13/pflag v1.0.5
@@ -29,7 +29,7 @@ require (
 	gopkg.in/gcfg.v1 v1.2.0
 	gopkg.in/yaml.v2 v2.2.8
 	k8s.io/api v0.18.2
-	k8s.io/apimachinery v0.18.2
+	k8s.io/apimachinery v0.18.3
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
 	k8s.io/cloud-provider v0.16.4
 	k8s.io/component-base v0.17.4
@@ -335,17 +335,17 @@ replace github.com/digitalocean/godo => github.com/digitalocean/godo v1.27.0
 
 replace github.com/rancher/go-rancher => github.com/rancher/go-rancher v0.1.0
 
-replace github.com/mesosphere/konvoy => github.com/mesosphere/konvoy v1.5.0-beta.5.0.20200604044529-415ea20c7a71
+replace github.com/mesosphere/konvoy => github.com/mesosphere/konvoy v1.5.0-beta.7.0.20200611173031-3351bd001b9d
 
-replace github.com/mesosphere/konvoy/clientapis => github.com/mesosphere/konvoy/clientapis v0.0.0-20200604044529-415ea20c7a71
+replace github.com/mesosphere/konvoy/clientapis => github.com/mesosphere/konvoy/clientapis v0.0.0-20200611173031-3351bd001b9d
 
-replace github.com/mesosphere/konvoy/kuberneteslib => github.com/mesosphere/konvoy/kuberneteslib v0.0.0-20200604044529-415ea20c7a71
+replace github.com/mesosphere/konvoy/kuberneteslib => github.com/mesosphere/konvoy/kuberneteslib v0.0.0-20200611173031-3351bd001b9d
 
-replace github.com/mesosphere/konvoy/printerlib => github.com/mesosphere/konvoy/printerlib v0.0.0-20200604044529-415ea20c7a71
+replace github.com/mesosphere/konvoy/printerlib => github.com/mesosphere/konvoy/printerlib v0.0.0-20200611173031-3351bd001b9d
 
 replace github.com/google/go-querystring => github.com/google/go-querystring v1.0.0
 
-replace github.com/mesosphere/yakcl/clientapis => github.com/mesosphere/yakcl/clientapis v0.0.0-20200604074200-223f385ba632
+replace github.com/mesosphere/yakcl/clientapis => github.com/mesosphere/yakcl/clientapis v0.0.0-20200611201117-668ede115bcb
 
 replace k8s.io/helm => k8s.io/helm v2.16.3+incompatible
 
