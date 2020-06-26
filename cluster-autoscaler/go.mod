@@ -18,7 +18,7 @@ require (
 	github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
 	github.com/json-iterator/go v1.1.9
 	github.com/mesosphere/konvoy/clientapis v0.0.0
-	github.com/mesosphere/yakcl/clientapis v0.0.0-20200611201117-668ede115bcb
+	github.com/mesosphere/yakcl/clientapis v0.0.0
 	github.com/prometheus/client_golang v1.1.0
 	github.com/satori/go.uuid v1.2.0
 	github.com/spf13/pflag v1.0.5
@@ -27,17 +27,17 @@ require (
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	google.golang.org/api v0.15.1
 	gopkg.in/gcfg.v1 v1.2.0
-	gopkg.in/yaml.v2 v2.2.8
-	k8s.io/api v0.18.2
-	k8s.io/apimachinery v0.18.3
+	gopkg.in/yaml.v2 v2.3.0
+	k8s.io/api v0.18.3
+	k8s.io/apimachinery v0.18.4
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
 	k8s.io/cloud-provider v0.16.4
-	k8s.io/component-base v0.17.4
+	k8s.io/component-base v0.18.3
 	k8s.io/klog v1.0.0
 	k8s.io/kubernetes v1.16.4
 	k8s.io/legacy-cloud-providers v0.0.0
 	k8s.io/utils v0.0.0-20200414100711-2df71ebbae66
-	sigs.k8s.io/controller-runtime v0.5.2
+	sigs.k8s.io/controller-runtime v0.6.0
 )
 
 replace (
@@ -325,6 +325,7 @@ replace (
 	modernc.org/mathutil => modernc.org/mathutil v1.0.0
 	modernc.org/strutil => modernc.org/strutil v1.0.0
 	modernc.org/xc => modernc.org/xc v1.0.0
+	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.5.2
 	sigs.k8s.io/kustomize => sigs.k8s.io/kustomize v2.0.3+incompatible
 	sigs.k8s.io/structured-merge-diff => sigs.k8s.io/structured-merge-diff v1.0.1
 	sigs.k8s.io/yaml => sigs.k8s.io/yaml v1.1.0
@@ -345,7 +346,7 @@ replace github.com/mesosphere/konvoy/printerlib => github.com/mesosphere/konvoy/
 
 replace github.com/google/go-querystring => github.com/google/go-querystring v1.0.0
 
-replace github.com/mesosphere/yakcl/clientapis => github.com/mesosphere/yakcl/clientapis v0.0.0-20200611201117-668ede115bcb
+replace github.com/mesosphere/yakcl/clientapis => github.com/mesosphere/yakcl/clientapis v0.0.0-20200626052149-1439af6645f3
 
 replace k8s.io/helm => k8s.io/helm v2.16.3+incompatible
 
