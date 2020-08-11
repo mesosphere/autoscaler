@@ -301,7 +301,6 @@ func getNodeInfosForGroups(nodes []*apiv1.Node, nodeInfoCache map[string]*schedu
 		}
 		if added && nodeInfoCache != nil {
 			if nodeInfoCopy, err := deepCopyNodeInfo(result[id]); err == nil {
-				klog.Errorf("Error while deep copying node info: %v", err)
 				nodeInfoCache[id] = nodeInfoCopy
 			}
 		}
