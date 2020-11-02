@@ -12,13 +12,13 @@ require (
 	github.com/Azure/go-autorest/autorest v0.9.2
 	github.com/Azure/go-autorest/autorest/adal v0.8.0
 	github.com/Azure/go-autorest/autorest/to v0.3.0
-	github.com/aws/aws-sdk-go v1.25.50
+	github.com/aws/aws-sdk-go v1.34.1
 	github.com/ghodss/yaml v1.0.1-0.20180820084758-c7ce16629ff4
 	github.com/google/go-querystring v1.0.0
 	github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
 	github.com/json-iterator/go v1.1.9
+	github.com/mesosphere/konvoy/auto-provisioning/apis v0.0.0
 	github.com/mesosphere/konvoy/clientapis v0.0.0
-	github.com/mesosphere/yakcl/clientapis v0.0.0
 	github.com/prometheus/client_golang v1.1.0
 	github.com/satori/go.uuid v1.2.0
 	github.com/spf13/pflag v1.0.5
@@ -28,16 +28,16 @@ require (
 	google.golang.org/api v0.15.1
 	gopkg.in/gcfg.v1 v1.2.0
 	gopkg.in/yaml.v2 v2.3.0
-	k8s.io/api v0.18.3
-	k8s.io/apimachinery v0.18.4
+	k8s.io/api v0.18.10
+	k8s.io/apimachinery v0.18.10
 	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
 	k8s.io/cloud-provider v0.16.4
 	k8s.io/component-base v0.18.3
 	k8s.io/klog v1.0.0
 	k8s.io/kubernetes v1.16.4
 	k8s.io/legacy-cloud-providers v0.0.0
-	k8s.io/utils v0.0.0-20200414100711-2df71ebbae66
-	sigs.k8s.io/controller-runtime v0.6.0
+	k8s.io/utils v0.0.0-20200603063816-c1c6865ac451
+	sigs.k8s.io/controller-runtime v0.6.2
 )
 
 replace (
@@ -336,17 +336,19 @@ replace github.com/digitalocean/godo => github.com/digitalocean/godo v1.27.0
 
 replace github.com/rancher/go-rancher => github.com/rancher/go-rancher v0.1.0
 
-replace github.com/mesosphere/konvoy => github.com/mesosphere/konvoy v1.5.0-beta.7.0.20200611173031-3351bd001b9d
+replace github.com/mesosphere/konvoy => github.com/mesosphere/konvoy v1.6.0-rc.3
 
-replace github.com/mesosphere/konvoy/clientapis => github.com/mesosphere/konvoy/clientapis v0.0.0-20200611173031-3351bd001b9d
+replace github.com/mesosphere/konvoy/auto-provisioning/apis => github.com/mesosphere/konvoy/auto-provisioning/apis v0.0.0-20201030193553-90d03db43a68
 
-replace github.com/mesosphere/konvoy/kuberneteslib => github.com/mesosphere/konvoy/kuberneteslib v0.0.0-20200611173031-3351bd001b9d
+replace github.com/mesosphere/konvoy/auto-provisioning/apiutils => github.com/mesosphere/konvoy/auto-provisioning/apiutils v0.0.0-20201030193553-90d03db43a68
 
-replace github.com/mesosphere/konvoy/printerlib => github.com/mesosphere/konvoy/printerlib v0.0.0-20200611173031-3351bd001b9d
+replace github.com/mesosphere/konvoy/clientapis => github.com/mesosphere/konvoy/clientapis v0.0.0-20201030193553-90d03db43a68
+
+replace github.com/mesosphere/konvoy/kuberneteslib => github.com/mesosphere/konvoy/kuberneteslib v0.0.0-20201030193553-90d03db43a68
+
+replace github.com/mesosphere/konvoy/printerlib => github.com/mesosphere/konvoy/printerlib v0.0.0-20201030193553-90d03db43a68
 
 replace github.com/google/go-querystring => github.com/google/go-querystring v1.0.0
-
-replace github.com/mesosphere/yakcl/clientapis => github.com/mesosphere/yakcl/clientapis v0.0.0-20200626052149-1439af6645f3
 
 replace k8s.io/helm => k8s.io/helm v2.16.3+incompatible
 

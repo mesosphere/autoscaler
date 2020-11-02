@@ -14,7 +14,7 @@ import (
 	"k8s.io/klog"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	yakclv1beta1 "github.com/mesosphere/yakcl/clientapis/pkg/apis/kommander/v1beta1"
+	konvoyautoprovv1beta1 "github.com/mesosphere/konvoy/auto-provisioning/apis/pkg/apis/kommander/v1beta1"
 )
 
 const (
@@ -51,7 +51,7 @@ func (k *KonvoyManager) forceRefresh() error {
 	k.nodeGroupsMutex.Lock()
 	defer k.nodeGroupsMutex.Unlock()
 
-	konvoyCluster := &yakclv1beta1.KonvoyCluster{}
+	konvoyCluster := &konvoyautoprovv1beta1.KonvoyCluster{}
 	clusterNamespacedName := types.NamespacedName{
 		Namespace: k.clusterNamespace,
 		Name:      k.clusterName,
@@ -124,7 +124,7 @@ func (k *KonvoyManager) GetNodeGroupSize(nodeGroup string) (int, error) {
 
 // GetNodeGroupTargetSize returns the target size of the node group.
 func (k *KonvoyManager) GetNodeGroupTargetSize(nodeGroupName string) (int, error) {
-	konvoyCluster := &yakclv1beta1.KonvoyCluster{}
+	konvoyCluster := &konvoyautoprovv1beta1.KonvoyCluster{}
 	konvoyCluster.Name = k.clusterName
 	clusterNamespacedName := types.NamespacedName{
 		Namespace: k.clusterNamespace,
@@ -147,7 +147,7 @@ func (k *KonvoyManager) setNodeGroupTargetSize(nodeGroupName string, newSize int
 	var err error
 	klog.Infof("Setting the new target size '%d' to group '%s'", newSize, nodeGroupName)
 	for i := 0; i < numRetries; i++ {
-		konvoyCluster := &yakclv1beta1.KonvoyCluster{}
+		konvoyCluster := &konvoyautoprovv1beta1.KonvoyCluster{}
 		konvoyCluster.Name = k.clusterName
 		clusterNamespacedName := types.NamespacedName{
 			Namespace: k.clusterNamespace,
@@ -160,7 +160,7 @@ func (k *KonvoyManager) setNodeGroupTargetSize(nodeGroupName string, newSize int
 		}
 
 		// When Konvoy cluster is paused or in a provisioning phase. Let's skip any change for now
-		if konvoyCluster.Spec.ProvisioningPaused || konvoyCluster.Status.Phase == yakclv1beta1.KonvoyClusterPhaseProvisioning {
+		if konvoyCluster.Spec.ProvisioningPaused || konvoyCluster.Status.Phase == konvoyautoprovv1beta1.KonvoyClusterPhaseProvisioning {
 			klog.Errorf("Konvoy cluster is paused or in provisioning phase, retrying...")
 			return fmt.Errorf("Konvoy cluster is paused or in provisioning phase, retrying...")
 		}
