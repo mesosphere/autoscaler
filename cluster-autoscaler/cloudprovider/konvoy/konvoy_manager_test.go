@@ -13,8 +13,7 @@ import (
 	utilpointer "k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
-	yakclv1beta1 "github.com/mesosphere/yakcl/clientapis/pkg/apis/kommander/v1beta1"
-	konvoyclusterv1beta1 "github.com/mesosphere/yakcl/clientapis/pkg/apis/kommander/v1beta1"
+	konvoyautoprovv1beta1 "github.com/mesosphere/konvoy/auto-provisioning/apis/pkg/apis/kommander/v1beta1"
 	konvoyv1beta1 "github.com/mesosphere/konvoy/clientapis/pkg/apis/konvoy/v1beta1"
 	kube_util "k8s.io/autoscaler/cluster-autoscaler/utils/kubernetes"
 )
@@ -24,14 +23,14 @@ func TestKonvoyManagerGetNodeGroups(t *testing.T) {
 	var tests = []struct {
 		description   string
 		clusterName   string
-		konvoyCluster *yakclv1beta1.KonvoyCluster
+		konvoyCluster *konvoyautoprovv1beta1.KonvoyCluster
 		nodeGroups    []*NodeGroup
 	}{
 		{
 			description:   "should return empty node groups",
 			clusterName:   "test-cluster",
 			nodeGroups:    nil,
-			konvoyCluster: &yakclv1beta1.KonvoyCluster{},
+			konvoyCluster: &konvoyautoprovv1beta1.KonvoyCluster{},
 		},
 		{
 			description: "should return a node group",
@@ -43,12 +42,12 @@ func TestKonvoyManagerGetNodeGroups(t *testing.T) {
 					maxSize: 10,
 				},
 			},
-			konvoyCluster: &yakclv1beta1.KonvoyCluster{
+			konvoyCluster: &konvoyautoprovv1beta1.KonvoyCluster{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test-cluster",
 					Namespace: "kommander",
 				},
-				Spec: yakclv1beta1.KonvoyClusterSpec{
+				Spec: konvoyautoprovv1beta1.KonvoyClusterSpec{
 					ProvisionerConfiguration: konvoyv1beta1.ClusterProvisionerSpec{
 						NodePools: []konvoyv1beta1.MachinePool{
 							{
@@ -67,12 +66,12 @@ func TestKonvoyManagerGetNodeGroups(t *testing.T) {
 			description: "should skip node pool with autoscaling disabled",
 			clusterName: "test-cluster",
 			nodeGroups:  nil,
-			konvoyCluster: &yakclv1beta1.KonvoyCluster{
+			konvoyCluster: &konvoyautoprovv1beta1.KonvoyCluster{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test-cluster",
 					Namespace: "kommander",
 				},
-				Spec: yakclv1beta1.KonvoyClusterSpec{
+				Spec: konvoyautoprovv1beta1.KonvoyClusterSpec{
 					ProvisionerConfiguration: konvoyv1beta1.ClusterProvisionerSpec{
 						NodePools: []konvoyv1beta1.MachinePool{
 							{
@@ -86,7 +85,7 @@ func TestKonvoyManagerGetNodeGroups(t *testing.T) {
 	}
 
 	scheme := runtime.NewScheme()
-	err := konvoyclusterv1beta1.AddToScheme(scheme)
+	err := konvoyautoprovv1beta1.AddToScheme(scheme)
 	assert.NoError(t, err)
 
 	for _, test := range tests {
@@ -118,7 +117,7 @@ func TestKonvoyManagerSetTargetSizeIgnored(t *testing.T) {
 	var tests = []struct {
 		description   string
 		clusterName   string
-		konvoyCluster *yakclv1beta1.KonvoyCluster
+		konvoyCluster *konvoyautoprovv1beta1.KonvoyCluster
 		nodeGroups    []*NodeGroup
 	}{
 		{
@@ -131,12 +130,12 @@ func TestKonvoyManagerSetTargetSizeIgnored(t *testing.T) {
 					maxSize: 10,
 				},
 			},
-			konvoyCluster: &yakclv1beta1.KonvoyCluster{
+			konvoyCluster: &konvoyautoprovv1beta1.KonvoyCluster{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test-cluster",
 					Namespace: "kommander",
 				},
-				Spec: yakclv1beta1.KonvoyClusterSpec{
+				Spec: konvoyautoprovv1beta1.KonvoyClusterSpec{
 					ProvisioningPaused: true,
 					ProvisionerConfiguration: konvoyv1beta1.ClusterProvisionerSpec{
 						NodePools: []konvoyv1beta1.MachinePool{
@@ -155,7 +154,7 @@ func TestKonvoyManagerSetTargetSizeIgnored(t *testing.T) {
 	}
 
 	scheme := runtime.NewScheme()
-	err := konvoyclusterv1beta1.AddToScheme(scheme)
+	err := konvoyautoprovv1beta1.AddToScheme(scheme)
 	assert.NoError(t, err)
 
 	for _, test := range tests {
@@ -249,7 +248,7 @@ func TestKonvoyManagerGetNodeNamesForNodeGroup(t *testing.T) {
 	}
 
 	scheme := runtime.NewScheme()
-	err := konvoyclusterv1beta1.AddToScheme(scheme)
+	err := konvoyautoprovv1beta1.AddToScheme(scheme)
 	assert.NoError(t, err)
 
 	for _, test := range tests {
