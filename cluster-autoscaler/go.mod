@@ -336,17 +336,17 @@ replace github.com/digitalocean/godo => github.com/digitalocean/godo v1.27.0
 
 replace github.com/rancher/go-rancher => github.com/rancher/go-rancher v0.1.0
 
-replace github.com/mesosphere/konvoy => github.com/mesosphere/konvoy v1.6.0-rc.3
+replace github.com/mesosphere/konvoy => github.com/mesosphere/konvoy v1.6.0-rc.4
 
-replace github.com/mesosphere/konvoy/auto-provisioning/apis => github.com/mesosphere/konvoy/auto-provisioning/apis v0.0.0-20201030193553-90d03db43a68
+replace github.com/mesosphere/konvoy/auto-provisioning/apis => github.com/mesosphere/konvoy/auto-provisioning/apis v0.0.0-20201104065833-505112c90d7c
 
-replace github.com/mesosphere/konvoy/auto-provisioning/apiutils => github.com/mesosphere/konvoy/auto-provisioning/apiutils v0.0.0-20201030193553-90d03db43a68
+replace github.com/mesosphere/konvoy/auto-provisioning/apiutils => github.com/mesosphere/konvoy/auto-provisioning/apiutils v0.0.0-20201104065833-505112c90d7c
 
-replace github.com/mesosphere/konvoy/clientapis => github.com/mesosphere/konvoy/clientapis v0.0.0-20201030193553-90d03db43a68
+replace github.com/mesosphere/konvoy/clientapis => github.com/mesosphere/konvoy/clientapis v0.0.0-20201104065833-505112c90d7c
 
-replace github.com/mesosphere/konvoy/kuberneteslib => github.com/mesosphere/konvoy/kuberneteslib v0.0.0-20201030193553-90d03db43a68
+replace github.com/mesosphere/konvoy/kuberneteslib => github.com/mesosphere/konvoy/kuberneteslib v0.0.0-20201104065833-505112c90d7c
 
-replace github.com/mesosphere/konvoy/printerlib => github.com/mesosphere/konvoy/printerlib v0.0.0-20201030193553-90d03db43a68
+replace github.com/mesosphere/konvoy/printerlib => github.com/mesosphere/konvoy/printerlib v0.0.0-20201104065833-505112c90d7c
 
 replace github.com/google/go-querystring => github.com/google/go-querystring v1.0.0
 
