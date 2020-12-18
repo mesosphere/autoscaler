@@ -8,10 +8,10 @@ go 1.13
 
 require (
 	cloud.google.com/go v0.52.0
-	github.com/Azure/azure-sdk-for-go v35.0.0+incompatible
-	github.com/Azure/go-autorest/autorest v0.9.2
-	github.com/Azure/go-autorest/autorest/adal v0.8.0
-	github.com/Azure/go-autorest/autorest/to v0.3.0
+	github.com/Azure/azure-sdk-for-go v46.4.0+incompatible
+	github.com/Azure/go-autorest/autorest v0.11.9
+	github.com/Azure/go-autorest/autorest/adal v0.9.5
+	github.com/Azure/go-autorest/autorest/to v0.4.0
 	github.com/aws/aws-sdk-go v1.34.1
 	github.com/ghodss/yaml v1.0.1-0.20180820084758-c7ce16629ff4
 	github.com/google/go-querystring v1.0.0
@@ -336,13 +336,13 @@ replace github.com/digitalocean/godo => github.com/digitalocean/godo v1.27.0
 
 replace github.com/rancher/go-rancher => github.com/rancher/go-rancher v0.1.0
 
-replace github.com/mesosphere/konvoy => github.com/mesosphere/konvoy v1.6.0-rc.4
+replace github.com/mesosphere/konvoy => github.com/mesosphere/konvoy v1.6.0-beta.3.0.20201217191812-90550102fc13
 
-replace github.com/mesosphere/konvoy/auto-provisioning/apis => github.com/mesosphere/konvoy/auto-provisioning/apis v0.0.0-20201104065833-505112c90d7c
+replace github.com/mesosphere/konvoy/auto-provisioning/apis => github.com/mesosphere/konvoy/auto-provisioning/apis v0.0.0-20201217191812-90550102fc13
 
-replace github.com/mesosphere/konvoy/auto-provisioning/apiutils => github.com/mesosphere/konvoy/auto-provisioning/apiutils v0.0.0-20201104065833-505112c90d7c
+replace github.com/mesosphere/konvoy/auto-provisioning/apiutils => github.com/mesosphere/konvoy/auto-provisioning/apiutils v0.0.0-20201217191812-90550102fc13
 
-replace github.com/mesosphere/konvoy/clientapis => github.com/mesosphere/konvoy/clientapis v0.0.0-20201104065833-505112c90d7c
+replace github.com/mesosphere/konvoy/clientapis => github.com/mesosphere/konvoy/clientapis v0.0.0-20201217191812-90550102fc13
 
 replace github.com/mesosphere/konvoy/kuberneteslib => github.com/mesosphere/konvoy/kuberneteslib v0.0.0-20201104065833-505112c90d7c
 
